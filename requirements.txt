@@ -6,9 +6,11 @@ contourpy==1.4.0
 cycler==0.12.1
 dbfread==2.0.7
 fonttools==4.67.0
+formulaic==1.2.2
 geopandas==1.2.0
 idna==3.20
 iniconfig==2.3.1
+interface-meta==2.0.1
 joblib==1.6.0
 kiwisolver==1.5.1
 matplotlib==3.11.2
@@ -16,6 +18,7 @@ narwhals==2.27.1
 numpy==2.5.4
 packaging==26.3
 pandas==3.1.0
+patsy==1.0.3
 pillow==13.0.0
 pluggy==1.7.0
 pyarrow==26.0.0
@@ -29,10 +32,15 @@ python-dateutil==3.0.0
 pyyaml==6.0.3
 requests==2.34.2
 scikit-learn==1.9.1
+scikit-posthocs==0.17.1
 scipy==1.18.1
+seaborn==0.13.2
 shapely==2.2.0
 six==1.17.0
+statsmodels==0.15.0
 -e file:///C:/Users/gabriel.fernandes_so/Desktop/TG
 threadpoolctl==3.7.0
+typing-extensions==4.16.0
 tzdata==2026.5
 urllib3==2.8.0
+wrapt==2.5.1

@@ -67,6 +67,7 @@ def exportar():
     A_rel = (A / ref).set_axis(E["cod_mun6"])
     R_rel = R / ref
 
+    cl = pd.read_parquet(CFG.tratado / "clusters.parquet").set_index("cod_mun6")["cluster"]
     d_ad = dist[dist["cnes"].isin(set(srv["cnes"]))].groupby("cod_mun6")["km"].min()
     n_ad = srv.groupby("cod_mun6").size()
 
@@ -77,7 +78,7 @@ def exportar():
             "c": c, "n": m["nome"], "r": m["nome_regiao"], "la": round(m["lat"], 4), "lo": round(m["lon"], 4),
             "p": int(pop.loc[c, "pop_total"]), "a": round(float(A_rel.get(c, 0)), 3),
             "t": round(float(dem.loc[c, "taxa_suav_int"]), 1), "d": round(float(d_ad.get(c, np.nan)), 1),
-            "k": int(n_ad.get(c, 0)),
+            "k": int(n_ad.get(c, 0)), "g": int(cl[c]),
         })
     _dump(linhas, "municipios.json")
 
@@ -95,7 +96,8 @@ def exportar():
     g["geometry"] = g.geometry.simplify(0.004, preserve_topology=True)
     g[["c", "geometry"]].to_file(SAIDA / "municipios.geojson", driver="GeoJSON", COORDINATE_PRECISION=4)
 
-    meta = {"ano": ANO, "camada": CAMADA, "raio_km": RAIO, "n_municipios": len(linhas), "n_servicos": len(sv),
+    from tg.clusters.kmeans import ROTULOS
+    meta = {"clusters": {str(k): v for k, v in ROTULOS.items()}, "ano": ANO, "camada": CAMADA, "raio_km": RAIO, "n_municipios": len(linhas), "n_servicos": len(sv),
             "cnes_competencia": f"{ANO}-12", "pesos_referencia": {"proximidade": 0.35, "regiao": 0.15,
                                                                  "adequacao": 0.15, "folga": 0.35}}
     _dump(meta, "meta.json")

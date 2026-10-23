@@ -122,6 +122,42 @@ def publicar():
     print(exportar.exportar())
 
 
+@etapa("clusters")
+def clusters():
+    from tg.config import CFG
+    from tg.clusters import kmeans as km
+    f = km.ajustar(km.construir_features(), k=5)
+    f.to_parquet(CFG.tratado / "clusters.parquet", index=False)
+    perfil = f.groupby("cluster").agg(n=("cod_mun6", "size"), **{v: (v, "median") for v in km.VARS}, pop_mediana=("pop_2024", "median"))
+    perfil.round(2).to_csv(CFG.tratado / "clusters_perfil.csv")
+    print(perfil.round(2).to_string())
+
+
+@etapa("censo")
+def censo():
+    from tg.config import CFG
+    from tg.tratamento import censo as c
+    df = c.construir_censo()
+    df.to_parquet(CFG.tratado / "censo.parquet", index=False)
+    print(df.describe().round(1).T[["count", "mean", "50%", "min", "max"]].to_string())
+
+
+@etapa("caracterizacao")
+def caracterizacao():
+    import pandas as pd
+    from tg.config import CFG
+    from tg.clusters import caracterizacao as car
+    cl = pd.read_parquet(CFG.tratado / "clusters.parquet")
+    df = cl.merge(pd.read_parquet(CFG.tratado / "censo.parquet"), on="cod_mun6")
+    tab, par = car.caracterizar(df)
+    tab.to_csv(CFG.tratado / "clusters_socioeconomico.csv", index=False)
+    for v, m in par.items():
+        m.to_csv(CFG.tratado / f"clusters_dunn_{v}.csv")
+    import pandas as pd
+    pd.set_option("display.width", 250)
+    print(tab.drop(columns=["H"]).round(4).to_string(index=False))
+
+
 def main(args):
     if not args or args[0] not in ETAPAS and args[0] != "tudo":
         print("etapas:", ", ".join(ETAPAS))

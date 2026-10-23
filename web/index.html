@@ -73,7 +73,7 @@ input[type=search],input[type=text],select{width:100%;padding:9px 10px;border:1p
 .nota{font-size:12.5px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px;margin:12px 0}
 h2{font-size:16px;margin:16px 0 6px}
 section.painel p,section.painel li{font-size:14px}
-.tools{position:absolute;z-index:500;top:10px;right:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;max-width:260px}
+.tools{position:absolute;z-index:500;top:10px;right:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:300px;max-width:60vw}
 .tools label{margin:0 0 4px}
 .legenda{background:var(--panel);color:var(--ink);padding:8px 10px;border-radius:8px;border:1px solid var(--line);font-size:12px;line-height:1.5}
 .legenda i{display:inline-block;width:14px;height:12px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.2)}
@@ -139,6 +139,7 @@ section.painel p,section.painel li{font-size:14px}
       <li>Só entram CAPS AD <b>habilitados</b> no CNES (dez/2024). Há CAPS que se denominam AD sem habilitação e CAPS de outras modalidades que atendem álcool e drogas; não estão contados.</li>
       <li>Os pesos do ranqueamento de referência (proximidade 35%, folga 35%, região 15%, adequação 15%) são <b>provisórios e não foram avaliados</b>.</li>
       <li>Município sem CAPS AD não significa município sem atendimento: a assistência pode ser regionalizada.</li>
+      <li><b>A tipologia é um agrupamento, não uma descoberta de classes naturais</b> (silhueta ≈ 0,28: os municípios formam um contínuo). Os grupos 2 e 3 diferem pelo caminho do cuidado, não pela condição socioeconômica: nenhuma variável do Censo os distingue.</li>
     </ul>
     <h2>Fontes</h2>
     <p>CNES e SIH/SUS (DATASUS, Ministério da Saúde); estimativas de população e Censo 2022 (IBGE). Apenas dados públicos agregados; nenhum dado individual é publicado.</p>
@@ -153,6 +154,7 @@ section.painel p,section.painel li{font-size:14px}
       <option value="a">Acessibilidade a CAPS AD</option>
       <option value="t">Taxa de internação F10–F19</option>
       <option value="d">Distância ao CAPS AD mais próximo</option>
+      <option value="g">Tipologia de municípios (K-Means)</option>
     </select>
     <label class="check"><input type="checkbox" id="vsrv" checked> Mostrar CAPS AD</label>
   </div>
@@ -193,6 +195,8 @@ function init(meta,m,s,geo){
   $("#regiao").addEventListener("change",planejamento); $("#origem").addEventListener("change",referencia);
   $("#camada").addEventListener("change",pintar); $("#vsrv").addEventListener("change",()=>$("#vsrv").checked?srvLayer.addTo(map):map.removeLayer(srvLayer));
   planejamento();
+  const cam=new URLSearchParams(location.search).get("camada"); // ?camada=a|t|d|g
+  if(cam && ["a","t","d","g"].includes(cam)){ $("#camada").value=cam; pintar(); }
   const h=decodeURIComponent(location.hash); // link direto: #ref=Nome do Município
   if(h.startsWith("#ref=")){ const x=M.find(m=>norm(m.n)===norm(h.slice(5))); if(x) verReferencia(x.c); }
 }
@@ -226,10 +230,24 @@ function mapa(geo){
 }
 
 function popupMun(x){ return `<b>${esc(x.n)}</b><br>${esc(x.r)}<br>População (2024): ${x.p.toLocaleString("pt-BR")}<br>
-  CAPS AD no município: ${x.k}<br>Acessibilidade relativa: ${fmt(x.a,2)}<br>Taxa de internação: ${fmt(x.t,0)} /100 mil<br>
+  Tipologia: ${esc(META.clusters[x.g])}<br>CAPS AD no município: ${x.k}<br>Acessibilidade relativa: ${fmt(x.a,2)}<br>Taxa de internação: ${fmt(x.t,0)} /100 mil<br>
   Distância ao CAPS AD mais próximo: ${fmt(x.d,0)} km<br><a href="#" onclick="verReferencia('${x.c}');return false">Ver encaminhamento</a>`; }
 
+/* paleta categorica (Okabe-Ito, segura para daltonismo) */
+const CATEG={1:"#d55e00",2:"#56b4e9",3:"#0072b2",4:"#009e73",5:"#e6c200"};
+function pintarCategorias(){
+  geoLayer.eachLayer(l=>{ const x=byCod[l.feature.properties.c]; if(x) l.setStyle({fillColor:CATEG[x.g]}); });
+  if(map._leg) map.removeControl(map._leg);
+  const leg=L.control({position:"bottomleft"});
+  leg.onAdd=()=>{ const d=L.DomUtil.create("div","legenda"); let h="<b>Tipologia (K-Means, k = 5)</b><br>";
+    for(const g of [1,2,3,4,5]) h+=`<i style="background:${CATEG[g]}"></i>${esc(META.clusters[g])} (${M.filter(x=>x.g===g).length})<br>`;
+    h+=`<span style="color:var(--muted)">Agrupa por acesso, distância, internação, óbito e atendimento em CAPS. Rótulos são interpretação nossa.</span>`;
+    d.innerHTML=h; return d; };
+  leg.addTo(map); map._leg=leg;
+}
+
 function pintar(){
+  if($("#camada").value==="g") return pintarCategorias();
   const k=$("#camada").value, vals=M.map(x=>x[k]).filter(v=>v!=null&&!isNaN(v)).sort((a,b)=>a-b);
   const cortes=[1,2,3,4].map(i=>vals[Math.floor(i*vals.length/5)]);
   const ruimBaixo = CAMADAS[k].ruim==="baixo";

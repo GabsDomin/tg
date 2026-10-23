@@ -29,7 +29,7 @@ def test_sem_colunas_proibidas(nome):
 
 def test_nao_publica_contagens_absolutas_de_pacientes():
     d = json.loads((DATA / "municipios.json").read_text(encoding="utf-8"))
-    assert set(d[0]) == {"c", "n", "r", "la", "lo", "p", "a", "t", "d", "k"}   # so taxas e indices
+    assert set(d[0]) == {"c", "n", "r", "la", "lo", "p", "a", "t", "d", "k", "g"}   # so taxas e indices
 
 
 def test_645_municipios_e_acentos_preservados():
