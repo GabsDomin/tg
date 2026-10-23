@@ -3,6 +3,17 @@
 O site é **estático** (`web/`): HTML + JS + JSON. Não há servidor nem build.
 A Vercel não hospeda Streamlit, por isso o site lê só dados pré-computados.
 
+## Estado atual (23/10/2026)
+- **Site no ar: https://tg-red.vercel.app** (projeto `tg`, conta `gabsdomin`, publicado pela CLI).
+- O endereço com hash (`tg-<hash>-gabsdomins-projects.vercel.app`) fica atrás de login da
+  Vercel; **divulgue só o `tg-red.vercel.app`**.
+- **Deploy automático pelo GitHub NÃO está ligado** (o app da Vercel não tem acesso ao
+  repositório). Para atualizar o site, rode a partir da pasta `web`:
+  `npx vercel deploy --prod --yes`. Para ligar o deploy automático: Vercel → projeto `tg` →
+  Settings → Git → conectar `GabsDomin/tg` (exige autorizar o app da Vercel no GitHub).
+- `web/.env.local` e `web/.vercel/` contêm token/ids da Vercel: estão no `web/.gitignore`.
+  **Nunca** versionar.
+
 ## Atualizar os dados
 ```
 .venv\Scripts\python.exe -I pipeline.py demanda acessibilidade publicar

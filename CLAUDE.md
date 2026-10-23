@@ -107,8 +107,9 @@ sumário, 1 Introdução (1.1–1.6), 2 Referencial Teórico (2.1–2.5), 3 Meto
   para a **Vercel** (Root Directory = `web`). Guia em `docs/PUBLICACAO.md`. **Mudança de
   arquitetura:** a Vercel não hospeda Streamlit, então o site é HTML/JS lendo `web/data/*.json`
   (gerado por `python pipeline.py publicar`). Rotulado "Versão preliminar"; os pesos de
-  referência (`web/data/meta.json`) NÃO foram avaliados. Ainda **não publicado** (exige GitHub
-  + login do grupo, D7). O motor de busca real, com recuperação semântica e avaliação (Fases
+  referência (`web/data/meta.json`) NÃO foram avaliados. **No ar em https://tg-red.vercel.app**
+  (publicado em 23/10/2026; código em github.com/GabsDomin/tg). Atualizar:
+  `npx vercel deploy --prod --yes` dentro de `web/` (ver docs/PUBLICACAO.md). O motor de busca real, com recuperação semântica e avaliação (Fases
   3–4), ainda não existe: a busca atual é por nome + necessidade, em JS.
 - ⏳ Próxima: **T2.4** (K-Means) e **T2.5** (caracterização). Não começar a Fase 3 (motor de
   busca) antes de D0 (a exigência existe? qual a data?).
