@@ -196,6 +196,8 @@ for (const [b, d] of Object.entries(dif)) console.log(`  vs ${b.padEnd(12)} n=${
 const geral = { ndcg: media(todos.map((l) => l.sistema.ndcg)), p: media(todos.map((l) => l.sistema.p)), mrr: media(todos.map((l) => l.sistema.mrr)) };
 console.log(`\nGeral (sistema, ${todos.length} consultas): NDCG@10 ${geral.ndcg.toFixed(3)} | P@10 ${geral.p.toFixed(3)} | MRR ${geral.mrr.toFixed(3)}`);
 
+const geralBase = {};
+for (const b of ["bm25", "necessidade", "hibrido"]) { const L = todos.filter((l) => l[b]); geralBase[b] = { n: L.length, ndcg: media(L.map((l) => l[b].ndcg)) }; }
 const acInt = { n: interp.length, exato: media(interp.map((i) => +i.exato)), intencao: media(interp.map((i) => +i.intencaoOk)) };
 const TP = interp.reduce((a, i) => a + i.tp, 0), FP = interp.reduce((a, i) => a + i.fp, 0), FN = interp.reduce((a, i) => a + i.fn, 0);
 acInt.precisao = TP / Math.max(1, TP + FP); acInt.revocacao = TP / Math.max(1, TP + FN);
@@ -207,7 +209,7 @@ console.log("\nPiores consultas (NDCG@10 do sistema):");
 
 if (SAIDA) {
   const saida = { rotulo: ROTULO, gerado_em: new Date().toISOString().slice(0, 10), n_consultas: consultas.length, n_ranqueadas: linhas.length, autoria: "rascunho do assistente; o grupo deve substituir/ampliar",
-    excluidas, corpus: motor.corpus, por_escopo: tabela, geral, diferencas: dif, interpretacao: acInt };
+    excluidas, corpus: motor.corpus, por_escopo: tabela, geral, geral_baselines: geralBase, diferencas: dif, interpretacao: acInt };
   writeFileSync(new URL(SAIDA, `file://${process.cwd().replace(/\\/g, "/")}/`), JSON.stringify(saida, null, 1), "utf-8");
   console.log(`\nsalvo em ${SAIDA}`);
 }

@@ -38,7 +38,7 @@ addEventListener("unhandledrejection",function(e){__erros.push("promise: "+(e.re
     <button class="btn" type="button" id="tema" aria-label="Alternar tema: automático, claro ou escuro" title="Alternar tema"></button>
   </nav>
 </header>
-<p class="aviso">Apoio ao <b>planejamento e à gestão</b>, não é triagem clínica nem substitui avaliação profissional. Em crise: <b>CVV 188</b> (24 h) ou <b>SAMU 192</b>.<span class="so-desk"> Os resultados são estimativas a partir de dados públicos agregados.</span></p>
+<p class="aviso"><span class="so-desk">Apoio ao <b>planejamento e à gestão</b>, não é triagem clínica nem substitui avaliação profissional. </span><span class="so-mob">Não é triagem clínica. </span>Em crise: <b>CVV 188</b> (24 h) ou <b>SAMU 192</b>.<span class="so-desk"> Os resultados são estimativas a partir de dados públicos agregados.</span></p>
 
 <main class="app">
   <section class="busca" aria-label="Busca">
@@ -59,14 +59,15 @@ addEventListener("unhandledrejection",function(e){__erros.push("promise: "+(e.re
 
   <section class="mapwrap" aria-label="Mapa">
     <div class="tools">
-      <label for="camada">Camada do mapa</label>
+      <div class="tools-cab"><label for="camada">O que mostrar no mapa</label><button type="button" id="camada-info" class="info" aria-expanded="false" aria-controls="camada-desc" aria-label="O que este mapa mostra?">?</button></div>
       <select id="camada">
-        <option value="a">Acessibilidade a CAPS AD</option>
-        <option value="t">Taxa de internação F10–F19</option>
-        <option value="d">Distância ao CAPS AD mais próximo</option>
-        <option value="g">Tipologia de municípios (K-Means)</option>
+        <option value="a">Acesso a CAPS AD</option>
+        <option value="t">Internações por álcool e drogas</option>
+        <option value="d">Distância até o CAPS AD mais próximo</option>
+        <option value="g">Perfil do município (5 grupos)</option>
       </select>
-      <label class="check"><input type="checkbox" id="vsrv" checked> Mostrar CAPS AD</label>
+      <p id="camada-desc" class="camada-desc"></p>
+      <label class="check"><input type="checkbox" id="vsrv" checked> Mostrar os CAPS AD (pontos pretos)</label>
     </div>
     <div id="map" role="application" aria-label="Mapa dos municípios de São Paulo"></div>
   </section>
@@ -76,18 +77,18 @@ addEventListener("unhandledrejection",function(e){__erros.push("promise: "+(e.re
   </section>
 </main>
 
-<dialog id="dlg-como" aria-labelledby="t-como">
-  <div class="d-cab"><h2 id="t-como">Como funciona a busca</h2><button type="button" data-fecha>Fechar</button></div>
-  <div class="d-corpo" id="corpo-como"></div>
-</dialog>
-<dialog id="dlg-aval" aria-labelledby="t-aval">
-  <div class="d-cab"><h2 id="t-aval">Avaliação do motor</h2><button type="button" data-fecha>Fechar</button></div>
-  <div class="d-corpo" id="corpo-aval"><p>Carregando…</p></div>
-</dialog>
-<dialog id="dlg-sobre" aria-labelledby="t-sobre">
-  <div class="d-cab"><h2 id="t-sobre">Sobre</h2><button type="button" data-fecha>Fechar</button></div>
-  <div class="d-corpo" id="corpo-sobre"></div>
-</dialog>
+<div class="modal" id="dlg-como" role="dialog" aria-modal="true" aria-labelledby="t-como" hidden>
+  <div class="modal-caixa"><div class="d-cab"><h2 id="t-como">Como funciona</h2><button type="button" data-fecha>Fechar</button></div>
+  <div class="d-corpo" id="corpo-como"></div></div>
+</div>
+<div class="modal" id="dlg-aval" role="dialog" aria-modal="true" aria-labelledby="t-aval" hidden>
+  <div class="modal-caixa"><div class="d-cab"><h2 id="t-aval">Avaliação: dá para confiar?</h2><button type="button" data-fecha>Fechar</button></div>
+  <div class="d-corpo" id="corpo-aval"><p>Carregando…</p></div></div>
+</div>
+<div class="modal" id="dlg-sobre" role="dialog" aria-modal="true" aria-labelledby="t-sobre" hidden>
+  <div class="modal-caixa"><div class="d-cab"><h2 id="t-sobre">Sobre este site</h2><button type="button" data-fecha>Fechar</button></div>
+  <div class="d-corpo" id="corpo-sobre"></div></div>
+</div>
 <noscript><p class="aviso">Este site precisa de JavaScript para exibir o mapa e a busca.</p></noscript>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

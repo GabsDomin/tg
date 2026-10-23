@@ -48,11 +48,56 @@ const ok = (nome, cond, extra = "") => { relatorio.push([cond ? "OK " : "FALHA",
 const erros = () => avaliar("document.documentElement.getAttribute('data-erros') || ''");
 const digitar = async (q) => avaliar(`(()=>{const i=document.querySelector('#q');i.value=${JSON.stringify(q)};document.querySelector('#form').requestSubmit();return true})()`);
 
+const aberto = (alvo) => `(()=>{const d=document.getElementById('${alvo}'); const cs=getComputedStyle(d); return !d.hidden && cs.display!=='none' && cs.visibility!=='hidden'})()`;
+const JARGAO = /NDCG|BM25|K-Means|silhueta|E2SFCA|recuperação de informação/i;
+
+/** abre cada painel (Como funciona / Avaliação / Sobre): conteudo visivel, sem jargao no inicio, e fecha por botao, Esc e clique fora */
+async function checarPaineis(pref) {
+  for (const [rot, alvo, deve] of [["Como funciona", "dlg-como", /territórios prioritários/i], ["Avaliação", "dlg-aval", /dá para confiar|merece confiança/i], ["Sobre", "dlg-sobre", /Para que serve/i]]) {
+    await avaliar(`document.querySelector('[data-abre="${alvo}"]').click(); true`);
+    await sleep(800);
+    const est = await avaliar(`(()=>{const d=document.getElementById('${alvo}'); const r=d.querySelector('.modal-caixa').getBoundingClientRect();
+      const t=(d.innerText||'').trim(); return {aberto:${aberto(alvo)}, txt:t.length, h:Math.round(r.height), w:Math.round(r.width), ini:t.slice(0,600), foco: document.activeElement && document.activeElement.hasAttribute('data-fecha')}})()`);
+    ok(`${pref}: "${rot}" abre e mostra conteúdo`, est.aberto && est.txt > 400 && est.h > 150, `${est.w}x${est.h}px, ${est.txt} caracteres`);
+    ok(`${pref}: "${rot}" explica em linguagem simples`, deve.test(est.ini) && !JARGAO.test(est.ini), est.ini.slice(0, 70).replace(/\n/g, " "));
+    ok(`${pref}: "${rot}" leva o foco para o botão Fechar`, est.foco);
+    await captura(`${pref}_painel_${alvo}.png`);
+    await avaliar(`document.querySelector('#${alvo} [data-fecha]').click(); true`); await sleep(250);
+    ok(`${pref}: "${rot}" fecha pelo botão`, !(await avaliar(aberto(alvo))));
+    await avaliar(`document.querySelector('[data-abre="${alvo}"]').click(); true`); await sleep(250);
+    await avaliar(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape'})); true`); await sleep(250);
+    ok(`${pref}: "${rot}" fecha com Esc`, !(await avaliar(aberto(alvo))));
+    await avaliar(`document.querySelector('[data-abre="${alvo}"]').click(); true`); await sleep(250);
+    await avaliar(`document.getElementById('${alvo}').click(); true`); await sleep(250);
+    ok(`${pref}: "${rot}" fecha ao clicar fora`, !(await avaliar(aberto(alvo))));
+  }
+  ok(`${pref}: a rolagem da página volta ao fechar`, !(await avaliar("document.body.classList.contains('sem-rolagem')")));
+}
+
+/** a tela inicial recomenda territorios (3 criterios) e o mapa tem nomes claros */
+async function checarInicio(pref) {
+  const n = await avaliar("document.querySelectorAll('#lista-prio .cartao').length");
+  ok(`${pref}: tela inicial lista territórios prioritários`, n === 8, `${n} cartões`);
+  ok(`${pref}: cada território diz “por que aparece”`, await avaliar("[...document.querySelectorAll('#lista-prio .cartao')].every(c=>/Por que aparece/.test(c.innerText))"));
+  ok(`${pref}: três critérios de prioridade`, await avaliar("document.querySelectorAll('.lente').length === 3"));
+  const antes = await avaliar("document.querySelector('#lista-prio .cartao h3').innerText");
+  await avaliar("document.querySelectorAll('.lente')[1].click(); true"); await sleep(300);
+  const depois = await avaliar("document.querySelector('#lista-prio .cartao h3').innerText");
+  ok(`${pref}: trocar o critério muda a lista`, antes !== depois, `${antes.replace(/\n/g, " ")} → ${depois.replace(/\n/g, " ")}`);
+  await avaliar("document.querySelectorAll('.lente')[2].click(); true"); await sleep(300);
+  ok(`${pref}: critério “regiões” recomenda regiões`, await avaliar("document.querySelectorAll('#lista-prio .badge.regiao').length === 8"));
+  await avaliar("document.querySelectorAll('.lente')[0].click(); true"); await sleep(200);
+  const ops = await avaliar("[...document.querySelectorAll('#camada option')].map(o=>o.textContent)");
+  ok(`${pref}: nomes das camadas do mapa são claros`, ops.length === 4 && !ops.some((o) => /K-Means|Tipologia|Acessibilidade/.test(o)) && ops.every((o) => o.length > 12), ops.join(" | "));
+  ok(`${pref}: o mapa explica o que está mostrando`, (await avaliar("document.querySelector('#camada-desc').textContent")).length > 60);
+}
+
 async function roteiroMobile() {
   console.log("\n--- MOBILE 390x844 (toque, escala 2) ---");
   const carregou = await abrir(BASE, { w: 390, h: 844, mobile: true });
   ok("mobile: página carrega (boas-vindas)", carregou);
   ok("mobile: sem erros de JS", (await erros()) === "", await erros());
+  await checarInicio("mobile");
   const sw = await avaliar("document.documentElement.scrollWidth"), iw = await avaliar("innerWidth");
   ok("mobile: sem rolagem horizontal", sw <= iw + 1, `scrollWidth=${sw} innerWidth=${iw}`);
   const alt = await avaliar("Math.round(document.querySelector('#map').getBoundingClientRect().height)");
@@ -66,10 +111,7 @@ async function roteiroMobile() {
   await captura("m_02_busca.png");
   await avaliar("document.querySelector('#resultados').scrollIntoView(); true"); await sleep(400);
   await captura("m_03_resultados.png");
-  await avaliar("document.querySelector('[data-abre=\"dlg-aval\"]').click(); true"); await sleep(1200);
-  ok("mobile: diálogo de avaliação abre com tabela", await esperar("document.querySelector('#dlg-aval[open] table')", 8000));
-  await captura("m_04_avaliacao.png");
-  await avaliar("document.querySelector('#dlg-aval [data-fecha]').click(); true");
+  await checarPaineis("mobile");
   ok("mobile: sem erros de JS ao final", (await erros()) === "", await erros());
 }
 
@@ -77,6 +119,7 @@ async function roteiroDesktop() {
   console.log("\n--- DESKTOP 1400x860 ---");
   const carregou = await abrir(BASE, { w: 1400, h: 860, mobile: false });
   ok("desktop: página carrega", carregou);
+  await checarInicio("desktop");
   await captura("d_01_inicio.png");
   await digitar("cidades pequenas com alta internação e sem serviço");
   ok("desktop: busca de planejamento", await esperar("document.querySelectorAll('.cartao').length >= 5"));
@@ -84,6 +127,9 @@ async function roteiroDesktop() {
   await captura("d_02_planejamento.png");
   await avaliar("document.querySelector('#interp .chip button').click(); true"); await sleep(500);
   ok("desktop: remover chip refaz a busca", await avaliar("document.querySelectorAll('#interp .chip button').length === 2"));
+  await avaliar("document.querySelector('#voltar').click(); true"); await sleep(400);
+  ok("desktop: botão volta aos territórios prioritários", await avaliar("document.querySelectorAll('#lista-prio .cartao').length === 8 && document.querySelector('#q').value === ''"));
+  await digitar("cidades pequenas com alta internação e sem serviço"); await esperar("document.querySelectorAll('.cartao').length >= 5");
   await avaliar("document.querySelector('.cartao details summary').click(); true"); await sleep(200);
   await avaliar("document.querySelector('.cartao').click(); true"); await sleep(900);
   ok("desktop: clicar no cartão seleciona no mapa", await avaliar("!!document.querySelector('path.mun.sel')"));
@@ -98,8 +144,7 @@ async function roteiroDesktop() {
   ok("desktop: tema escuro", await avaliar("document.documentElement.getAttribute('data-theme')==='dark'"));
   await digitar("regiões com maior taxa de internação"); await esperar("document.querySelectorAll('.badge.regiao').length >= 5");
   await captura("d_05_regioes_escuro.png");
-  await avaliar("document.querySelector('[data-abre=\"dlg-como\"]').click(); true"); await sleep(500);
-  await captura("d_06_como_funciona.png");
+  await checarPaineis("desktop");
   ok("desktop: sem erros de JS ao final", (await erros()) === "", await erros());
 }
 

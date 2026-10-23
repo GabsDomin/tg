@@ -115,6 +115,29 @@ test("desempenho: consulta tipica em menos de 250 ms", () => {
   assert.ok((performance.now() - t0) / 10 < 250);
 });
 
+test("territorios prioritarios: tres lentes, ordenadas e com motivo em linguagem simples", () => {
+  for (const lente of ["necessidade", "pessoas", "regioes"]) {
+    const p = motor.prioridades(lente, 8);
+    assert.equal(p.length, 8, lente);
+    const sc = p.map((x) => x.score);
+    assert.deepEqual(sc, [...sc].sort((a, b) => b - a), lente);
+    assert.ok(p.every((x) => x.motivo && x.motivo.length > 10), lente);
+  }
+  const pessoas = motor.prioridades("pessoas", 8);
+  assert.ok(pessoas.every((x) => x.dados.k === 0 && x.dados.pa <= 1 / 3), "so municipios sem CAPS AD e acesso baixo");
+  const pop = pessoas.map((x) => x.dados.p);
+  assert.deepEqual(pop, [...pop].sort((a, b) => b - a));
+  assert.equal(motor.prioridades("regioes", 3)[0].tipo, "regiao");
+});
+
+test("'mais populosos' ordena por populacao em vez de virar filtro de porte", () => {
+  const r = motor.buscar("municípios sem CAPS AD com baixa acessibilidade mais populosos");
+  assert.equal(r.interpretacao.ordenacao?.chave, "populacao");
+  assert.ok(!ids(r).includes("porte_grande"));
+  const pop = r.resultados.map((x) => x.dados.p);
+  assert.deepEqual(pop, [...pop].sort((a, b) => b - a));
+});
+
 test("corpus tem o tamanho esperado", () => {
   assert.deepEqual(motor.corpus, { municipios: 645, regioes: 62, servicos: 115, documentos: 822 });
 });

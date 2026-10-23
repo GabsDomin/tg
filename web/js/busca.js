@@ -221,6 +221,7 @@ export function criarMotor({ municipios, regioes, servicos, meta }) {
     { re: /\blitoral\b|\blitoranea\b/, f: (c) => c.flag("litoral") },
     { re: /\b(?:pequen[oa]s?|menores)\s*(?:portes?)?\b/, f: (c) => c.flag("porte_pequeno") },
     { re: /\bmedi[oa]s?(?: portes?)?\b/, f: (c) => c.flag("porte_medio") },
+    { re: /\b(?:mais populos\w*|maior(?:es)? populac\w*)\b/, f: (c) => c.ord("populacao") },
     { re: /\b(?:grandes?|maiores)\b(?!\s+(?:taxa|numero|indice|demanda|internac))/, f: (c) => c.flag("porte_grande") },
     { re: /\bprior\w*|\bnecessidade\w*|\bcarente\w*|\bcritic\w*|\burgen\w*|\bimplant\w*|\bampli\w*|\bexpand\w*|\bnovos?\b/, f: (c) => c.ord("necessidade") },
     { re: /\b(?:ad iii|ad 3|caps iii ad)\b/, f: (c) => { c.modalidade = "AD III"; c.servicoCue = true; } },
@@ -312,15 +313,29 @@ export function criarMotor({ municipios, regioes, servicos, meta }) {
   const regiaoDe = (itp) => itp.entidades.filter((e) => e.tipo === "regiao").map((e) => e.ref);
   const munDe = (itp) => itp.entidades.filter((e) => e.tipo === "municipio").map((e) => e.ref);
 
+  const tMediana = (() => { const v = mun.map((m) => m.t).sort((a, b) => a - b); return v[Math.floor(v.length / 2)] || 1; })();
+  const nivelAcesso = (pa) => (pa >= 2 / 3 ? "alto" : pa <= 1 / 3 ? "baixo" : "médio");
+  const nivelInt = (pt) => (pt >= 2 / 3 ? "alta" : pt <= 1 / 3 ? "baixa" : "média");
+
+  /** frases em linguagem simples (sem jargao) */
   const fatosMun = (m) => [
-    m.k > 0 ? `${m.k} CAPS AD habilitado${m.k > 1 ? "s" : ""}` : "sem CAPS AD habilitado",
-    `acessibilidade ${fmt(m.a, 2)} (${descTercil(m.pa)})`, `internação ${fmt(m.t, 0)}/100 mil (${descTercil(m.pt)})`,
-    m.d != null ? `${fmt(m.d, 0)} km do CAPS AD mais próximo` : null,
+    m.k > 0 ? `${m.k} CAPS AD habilitado${m.k > 1 ? "s" : ""} no município` : "Sem CAPS AD habilitado no município",
+    m.k === 0 && m.d != null ? `CAPS AD mais próximo: ${fmt(m.d, 0)} km` : null,
+    `Acesso a CAPS AD: ${nivelAcesso(m.pa)} (${fmt(m.a, 2)}; média do estado = 1)`,
+    `Internações por álcool e outras drogas: ${fmt(m.t, 0)} por 100 mil hab./ano (${nivelInt(m.pt)})`,
   ].filter(Boolean);
+  /** "por que aparece": so o que pesa na recomendacao */
+  const motivoMun = (m) => {
+    const p = [m.k > 0 ? `${m.k} CAPS AD no município` : "sem CAPS AD habilitado"];
+    if (m.k === 0 && m.d != null) p.push(`CAPS AD mais próximo a ${fmt(m.d, 0)} km`);
+    if (m.pa <= 1 / 3) p.push("acesso a CAPS AD baixo");
+    if (m.pt >= 2 / 3) p.push(`internações ${fmt(m.t / tMediana, 1)}× a mediana do estado`);
+    return p.join(" · ");
+  };
 
   const cartaoMun = (m, score, expl) => ({
-    tipo: "municipio", id: m.c, titulo: m.n, subtitulo: `${m.r} · ${m.p.toLocaleString("pt-BR")} hab.`, score, explicacao: expl, fatos: fatosMun(m),
-    dados: m, selo: m.dz ? "deserto de cuidado" : (rotulos[m.g] || ""),
+    tipo: "municipio", id: m.c, titulo: m.n, subtitulo: `${m.r} · ${m.p.toLocaleString("pt-BR")} habitantes`, score, explicacao: expl, fatos: fatosMun(m),
+    motivo: motivoMun(m), dados: m, selo: m.dz ? "deserto de cuidado" : "",
   });
 
   function rankMunicipios(itp, filtrosExtras = []) {
@@ -351,9 +366,9 @@ export function criarMotor({ municipios, regioes, servicos, meta }) {
 
   function explicaMun(x, wTxt, ord) {
     const e = [];
-    if (wTxt > 0) e.push({ rotulo: "Correspondência de texto", valor: x.txt, peso: wTxt });
+    if (wTxt > 0) e.push({ rotulo: "Combina com o que você digitou", valor: x.txt, peso: wTxt });
     if (ord) e.push({ rotulo: ord.rot, valor: Math.max(0, Math.min(1, x.score)), peso: 1 - wTxt });
-    else { e.push({ rotulo: "Baixo acesso", valor: 1 - x.m.pa, peso: (1 - wTxt) * 0.5 }); e.push({ rotulo: "Alta internação", valor: x.m.pt, peso: (1 - wTxt) * 0.5 }); }
+    else { e.push({ rotulo: "Acesso a CAPS AD baixo", valor: 1 - x.m.pa, peso: (1 - wTxt) * 0.5 }); e.push({ rotulo: "Muitas internações", valor: x.m.pt, peso: (1 - wTxt) * 0.5 }); }
     return e;
   }
 
@@ -386,13 +401,15 @@ export function criarMotor({ municipios, regioes, servicos, meta }) {
     return itens.map((x) => ({
       tipo: "regiao", id: x.r.ri, titulo: x.r.n, subtitulo: `${x.r.nm} municípios · ${x.r.p.toLocaleString("pt-BR")} hab.`, score: x.score,
       explicacao: [{ rotulo: ord ? ord.rot : (porSem ? "Municípios sem CAPS AD / desertos" : "Necessidade estimada"), valor: x.score, peso: 1 }],
-      fatos: [`${x.r.sem} de ${x.r.nm} municípios sem CAPS AD`, `${x.r.dz} município${x.r.dz === 1 ? "" : "s"} em deserto de cuidado`,
-        `acessibilidade ${fmt(x.r.a, 2)} (${descTercil(x.r.pa)})`, `internação ${fmt(x.r.t, 0)}/100 mil (${descTercil(x.r.pt)})`], dados: x.r, selo: "",
+      fatos: [`${x.r.sem} de ${x.r.nm} municípios sem CAPS AD habilitado`, `${x.r.dz} município${x.r.dz === 1 ? "" : "s"} em deserto de cuidado`,
+        `Acesso a CAPS AD: ${nivelAcesso(x.r.pa)} (${fmt(x.r.a, 2)}; média do estado = 1)`, `Internações por álcool e outras drogas: ${fmt(x.r.t, 0)} por 100 mil hab./ano (${nivelInt(x.r.pt)})`],
+      motivo: `${x.r.sem} de ${x.r.nm} municípios sem CAPS AD${x.r.pa <= 1 / 3 ? " · acesso baixo" : ""}${x.r.pt >= 2 / 3 ? ` · internações ${fmt(x.r.t / tMediana, 1)}× a mediana` : ""}`,
+      dados: x.r, selo: "",
     }));
   }
 
   function cartaoSrv(s, score, expl, extra = []) {
-    return { tipo: "servico", id: s.id, titulo: s.n, subtitulo: `${s.mn} · ${s.r} · CAPS ${s.mo}`, score, explicacao: expl, fatos: [`modalidade ${s.mo}`, ...extra], dados: s, selo: "" };
+    return { tipo: "servico", id: s.id, titulo: s.n, subtitulo: `${s.mn} · ${s.r} · CAPS ${s.mo}`, score, explicacao: expl, fatos: [`Tipo: CAPS ${s.mo}`, ...extra], dados: s, selo: "" };
   }
 
   function rankServicos(itp) {
@@ -435,7 +452,7 @@ export function criarMotor({ municipios, regioes, servicos, meta }) {
       const comps = [{ rotulo: "Proximidade", valor: prox, peso: W.proximidade }, { rotulo: "Mesma região de saúde", valor: mesma, peso: W.regiao }, { rotulo: "Abertura a moradores de fora", valor: x.s.ab, peso: W.abertura }];
       return { ...x, score: comps.reduce((a, c) => a + c.valor * c.peso, 0), comps };
     }).sort((a, b) => b.score - a.score || a.km - b.km);
-    return lista.slice(0, limite).map((x) => cartaoSrv(x.s, x.score, x.comps, [`${fmt(x.km, 0)} km`, `folga relativa ${fmt(x.s.f, 2)} (informativa)`]));
+    return lista.slice(0, limite).map((x) => cartaoSrv(x.s, x.score, x.comps, [`${fmt(x.km, 0)} km de distância`, `Capacidade frente à demanda da região: ${fmt(x.s.f, 1)}× a média do estado (informativo; não entra na ordem)`]));
   }
 
   /** palavras de nomes proximas (distancia de edicao <= 2) dos termos livres; `d` = distancia */
@@ -508,6 +525,23 @@ export function criarMotor({ municipios, regioes, servicos, meta }) {
     return { interpretacao: itp, resultados, total: resultados.length, avisos, extras, ms: typeof performance !== "undefined" ? performance.now() - t0 : 0 };
   }
 
+  /** Territorios prioritarios para novos/mais CAPS AD, sob tres angulos. Devolve cartoes explicaveis. */
+  const LENTES = {
+    necessidade: { rot: "Maior necessidade", desc: "Pouco acesso a CAPS AD e muitas internações por álcool e outras drogas.", consulta: "onde priorizar CAPS AD" },
+    pessoas: { rot: "Mais pessoas afetadas", desc: "Municípios sem CAPS AD e com acesso baixo, dos mais populosos para os menos.", consulta: "municípios sem CAPS AD com baixa acessibilidade mais populosos" },
+    regioes: { rot: "Regiões de saúde", desc: "Regiões com mais municípios sem CAPS AD, pouco acesso e muitas internações.", consulta: "regiões prioritárias para novos CAPS AD" },
+  };
+  function prioridades(lente = "necessidade", limite = 8) {
+    if (lente === "regioes") return rankRegioes({ filtros: [], ordenacao: { chave: "necessidade" }, residuais: [] }).slice(0, limite);
+    if (lente === "pessoas") {
+      const base = mun.filter((m) => m.k === 0 && m.pa <= 1 / 3).sort((a, b) => b.p - a.p);
+      const maxP = base[0]?.p || 1;
+      return base.slice(0, limite).map((m) => cartaoMun(m, m.p / maxP, [{ rotulo: "População do município (em relação ao maior da lista)", valor: m.p / maxP, peso: 1 }]));
+    }
+    const { itens, wTxt, ord } = rankMunicipios(interpretar("onde priorizar CAPS AD"));
+    return itens.slice(0, limite).map((x) => cartaoMun(x.m, x.score, explicaMun(x, wTxt, ord)));
+  }
+
   const exemplos = [
     "municípios sem CAPS AD na região de Assis",
     "cidades pequenas com alta internação e sem serviço",
@@ -519,6 +553,6 @@ export function criarMotor({ municipios, regioes, servicos, meta }) {
     "maiores municípios sem CAPS AD habilitado",
   ];
 
-  return { interpretar, buscar, referencia, baselines: { buscaBruta, hibridoSemInterpretacao, ordemNecessidade }, municipio: (c) => byC.get(c), regiao: (ri) => byRi.get(ri), servicos: srv, municipios: mun, regioes: reg, exemplos,
+  return { interpretar, buscar, referencia, prioridades, lentes: LENTES, baselines: { buscaBruta, hibridoSemInterpretacao, ordemNecessidade }, municipio: (c) => byC.get(c), regiao: (ri) => byRi.get(ri), servicos: srv, municipios: mun, regioes: reg, exemplos,
     corpus: { municipios: mun.length, regioes: reg.length, servicos: srv.length, documentos: mun.length + reg.length + srv.length }, filtrosDisponiveis: F, ordenacoes: ORD };
 }

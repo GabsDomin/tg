@@ -129,6 +129,15 @@ sumário, 1 Introdução (1.1–1.6), 2 Referencial Teórico (2.1–2.5), 3 Meto
   BM25 puro (IC95% 0,18–0,42); rodada final 0,912 é otimista. Consultas escritas pelo assistente:
   **o grupo deve substituir/ampliar** (`avaliacao/LEIAME.md`). Testes: `pytest` (inclui o JS),
   `node scripts/busca/e2e.mjs <url> <pasta> tudo` (ponta a ponta, mobile 390x844 + desktop).
+- ✅ **Revisão de UX "como usuário" (23/10/2026, a pedido do grupo):** a tela inicial voltou a
+  **recomendar territórios prioritários** (3 critérios: maior necessidade, mais pessoas afetadas,
+  regiões; cada cartão diz "por que aparece"; `motor.prioridades()`); os painéis "Como funciona",
+  "Avaliação" e "Sobre" foram reescritos em linguagem simples (sem NDCG/BM25/K-Means no início) e
+  trocados de `<dialog>` para painel próprio (Esc, clique fora, foco preso); a "Avaliação" virou
+  veredito + barras ("dá para confiar?"); as camadas do mapa têm nomes claros e uma frase
+  explicativa; legenda compacta e mapa menor no celular. Teste ponta a ponta: **70 verificações**
+  (`scripts/busca/e2e.mjs`), passando contra o site no ar. Não consegui reproduzir falha mecânica
+  dos painéis em Edge/Chromium; se persistir, perguntar navegador/dispositivo.
 - 🚨 **PRAZO (descoberto em 23/10/2026):** o Termo T3 assinado (03/09/2026, em Downloads) fixa a
   **entrega da versão final em 16/10/2026** ("a não entrega reprova o trabalho"). O documento de
   15/10 (`TG_CAPS 1.docx`) tem os cap. 4 e 5 vazios. **Confirmar com o Prof. Ivan** se a data era do
