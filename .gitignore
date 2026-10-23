@@ -16,3 +16,4 @@ dados/cache/
 .sf/
 .claude/
 *.egg-info/
+logs_*.txt
