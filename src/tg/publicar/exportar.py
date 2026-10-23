@@ -82,13 +82,18 @@ def exportar():
         })
     _dump(linhas, "municipios.json")
 
+    # 'abertura' (fracao de pacientes de fora, ja suavizada e em percentil) com dados de producao
+    from tg.avaliacao import referencia as rf
+    attrs, _ = rf.atributos_servicos(ano_ref=ANO, anos_hist=range(2019, ANO + 1), bloco="avaliacao")
+    pesos = json.loads((CFG.tratado / "pesos_referencia.json").read_text(encoding="utf-8"))
+
     nomes = mun.set_index("cod_mun6")["nome"]
     sv = []
     for _, s in srv.iterrows():
         sv.append({"id": s["cnes"], "n": formatar_nome(s["nome"]) if isinstance(s["nome"], str) else f"CAPS AD (CNES {s['cnes']})",
                    "m": s["cod_mun6"], "mn": nomes[s["cod_mun6"]], "mo": s["modalidade_ad"],
                    "la": round(float(s["lat"]), 5), "lo": round(float(s["lon"]), 5),
-                   "f": round(float(R_rel.get(s["cnes"], 0)), 3)})
+                   "f": round(float(R_rel.get(s["cnes"], 0)), 3), "ab": round(float(attrs["abertura"].get(s["cnes"], 0.5)), 3)})
     _dump(sv, "servicos.json")
 
     g = gpd.read_file(CFG.bruto / "malha_sp_municipios.geojson")
@@ -98,7 +103,9 @@ def exportar():
 
     from tg.clusters.kmeans import ROTULOS
     meta = {"clusters": {str(k): v for k, v in ROTULOS.items()}, "ano": ANO, "camada": CAMADA, "raio_km": RAIO, "n_municipios": len(linhas), "n_servicos": len(sv),
-            "cnes_competencia": f"{ANO}-12", "pesos_referencia": {"proximidade": 0.35, "regiao": 0.15,
-                                                                 "adequacao": 0.15, "folga": 0.35}}
+            "cnes_competencia": f"{ANO}-12",
+            "pesos_referencia": {"proximidade": pesos["pesos"]["proximidade"], "regiao": pesos["pesos"]["mesma_regiao"],
+                                 "abertura": pesos["pesos"]["abertura"]},
+            "avaliacao": {"n_consultas": pesos["n_consultas"]}}
     _dump(meta, "meta.json")
     return meta

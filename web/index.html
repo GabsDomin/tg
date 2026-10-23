@@ -94,7 +94,7 @@ section.painel p,section.painel li{font-size:14px}
   <button id="tema" type="button" aria-label="Alternar tema: automático, claro ou escuro" title="Alternar tema"></button>
 </header>
 <p class="aviso">Ferramenta de apoio ao <b>planejamento e à gestão</b>, não de triagem clínica nem substituta de avaliação profissional.
-  Em situação de crise: <b>CVV 188</b> (24 h) ou <b>SAMU 192</b>. Os pesos de ranqueamento ainda não foram avaliados.</p>
+  Em situação de crise: <b>CVV 188</b> (24 h) ou <b>SAMU 192</b>. O ranqueamento de referência foi avaliado e <b>não supera a simples distância</b> de forma significativa (veja <i>Sobre</i>).</p>
 
 <main>
 <aside>
@@ -118,7 +118,7 @@ section.painel p,section.painel li{font-size:14px}
     <label for="origem">Município de origem</label>
     <input type="text" id="origem" list="lista-mun" placeholder="Digite o nome do município" autocomplete="off">
     <datalist id="lista-mun"></datalist>
-    <p class="dica">Lista CAPS AD num raio de 150 km, ordenados por proximidade, mesma região de saúde, adequação da modalidade e <b>folga</b> (capacidade por demanda estimada na área do serviço).</p>
+    <p class="dica">Lista CAPS AD num raio de 150 km, ordenados por <b>proximidade</b>, <b>mesma região de saúde</b> e <b>abertura</b> (quanto o serviço já atende moradores de fora). Pesos calibrados contra os fluxos reais de pacientes de 2023–24; veja os resultados em <i>Sobre</i>.</p>
     <div id="res-ref" aria-live="polite"></div>
     <p class="nota">Estar na lista <b>não garante vaga</b>: o acesso de moradores de outros municípios depende de pactuação regional. Contate o serviço antes de encaminhar.</p>
   </section>
@@ -137,7 +137,9 @@ section.painel p,section.painel li{font-size:14px}
       <li><b>Internação não é necessidade pura.</b> Regiões com hospital psiquiátrico de referência concentram internações (ex.: Espírito Santo do Pinhal), o que eleva a taxa de municípios vizinhos.</li>
       <li><b>O índice de acessibilidade tem validação externa fraca</b> (correlação parcial ≈ −0,10 com internações futuras) e, em poder preditivo, não supera a simples quantidade de oferta próxima.</li>
       <li>Só entram CAPS AD <b>habilitados</b> no CNES (dez/2024). Há CAPS que se denominam AD sem habilitação e CAPS de outras modalidades que atendem álcool e drogas; não estão contados.</li>
-      <li>Os pesos do ranqueamento de referência (proximidade 35%, folga 35%, região 15%, adequação 15%) são <b>provisórios e não foram avaliados</b>.</li>
+      <li><b>Como o ranqueamento de referência foi avaliado.</b> Para 219 municípios sem CAPS AD, comparamos a lista ordenada pelo sistema com os <b>fluxos reais de pacientes de 2023–24</b> (o sistema só usa dados até 2022). Resultado: o sistema (NDCG@5 = 0,73) <b>não é estatisticamente melhor que simplesmente listar o mais próximo</b> (0,71; diferença +0,02, IC 95% de −0,02 a +0,07). O que mais ajuda é a <b>região de saúde</b>. A <b>folga</b> do serviço (a ideia de "o mais próximo que não está sobrecarregado") <b>não melhorou a previsão e ficou fora do score</b>.</li>
+      <li>O fluxo anterior do próprio município é o melhor preditor (0,79), mas é um histórico, não um critério de recomendação, e por privacidade não é publicado aqui.</li>
+      <li>Os fluxos observados mostram <b>para onde as pessoas foram</b>, não necessariamente para onde deveriam ir.</li>
       <li>Município sem CAPS AD não significa município sem atendimento: a assistência pode ser regionalizada.</li>
       <li><b>A tipologia é um agrupamento, não uma descoberta de classes naturais</b> (silhueta ≈ 0,28: os municípios formam um contínuo). Os grupos 2 e 3 diferem pelo caminho do cuidado, não pela condição socioeconômica: nenhuma variável do Censo os distingue.</li>
     </ul>
@@ -292,11 +294,12 @@ function referencia(){
   if(!o){ out.innerHTML=`<p class="nota">Selecione um município da lista.</p>`; return; }
   const W=META.pesos_referencia, reg=o.r;
   const cand=S.map(s=>({s,km:hav(o.la,o.lo,s.la,s.lo)})).filter(c=>c.km<=150).map(c=>{
-    const prox=1-c.km/150, mesma=byCod[c.s.m].r===reg?1:0, adeq=c.s.mo==="AD"?0.7:1, fol=c.s.rf;
-    const comps=[["Proximidade",prox,W.proximidade],["Mesma região",mesma,W.regiao],["Adequação",adeq,W.adequacao],["Folga",fol,W.folga]];
+    const prox=1-c.km/150, mesma=byCod[c.s.m].r===reg?1:0;
+    const comps=[["Proximidade",prox,W.proximidade],["Mesma região",mesma,W.regiao],["Abertura",c.s.ab,W.abertura]];
     return {...c,comps,score:comps.reduce((a,[,v,w])=>a+v*w,0)}; }).sort((a,b)=>b.score-a.score).slice(0,8);
   out.innerHTML = (o.k?`<p class="nota"><b>${esc(o.n)}</b> já tem ${o.k} CAPS AD habilitado(s).</p>`:`<p class="nota"><b>${esc(o.n)}</b> não tem CAPS AD habilitado.</p>`)
-   + (cand.length? cand.map((c,i)=>`<div class="res"><h3>${i+1}. ${esc(c.s.n)}</h3><div class="sub">${esc(c.s.mn)} · CAPS ${esc(c.s.mo)} · ${fmt(c.km,0)} km · score ${fmt(c.score*100,0)}</div>${barras(c.comps)}</div>`).join("")
+   + (cand.length? cand.map((c,i)=>`<div class="res"><h3>${i+1}. ${esc(c.s.n)}</h3><div class="sub">${esc(c.s.mn)} · CAPS ${esc(c.s.mo)} · ${fmt(c.km,0)} km · score ${fmt(c.score*100,0)}</div>${barras(c.comps)}
+    <div class="sub">Só informativo (fora do score): folga relativa ${fmt(c.s.f,2)} (1 = média)</div></div>`).join("")
     : `<p class="nota">Nenhum CAPS AD habilitado em até 150 km.</p>`);
   lineLayer=L.layerGroup(cand.slice(0,3).map(c=>L.polyline([[o.la,o.lo],[c.s.la,c.s.lo]],{color:"#1f5f8b",weight:2,dashArray:"5 5"}))).addTo(map);
   map.fitBounds(L.latLngBounds([[o.la,o.lo],...cand.slice(0,3).map(c=>[c.s.la,c.s.lo])]).pad(.3));

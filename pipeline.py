@@ -158,6 +158,26 @@ def caracterizacao():
     print(tab.drop(columns=["H"]).round(4).to_string(index=False))
 
 
+@etapa("avaliacao_referencia")
+def avaliacao_referencia():
+    import json
+    import pandas as pd
+    from tg.config import CFG
+    from tg.avaliacao import experimento as ex, referencia as rf
+    d = rf.construir_pares()
+    r = ex.rodar(d)
+    r["tabela"].to_csv(CFG.tratado / "avaliacao_referencia_tabela.csv", index=False)
+    r["ablacao"].to_csv(CFG.tratado / "avaliacao_referencia_ablacao.csv", index=False)
+    r["estratos"].to_csv(CFG.tratado / "avaliacao_referencia_estratos.csv", index=False)
+    # pesos de PRODUCAO: calibrados em todas as consultas (a divisao dev/teste so serve para reportar)
+    w, v = ex.calibrar(ex._grupos(d))
+    final = {c: float(x) for c, x in zip(rf.COMPONENTES, w)}
+    (CFG.tratado / "pesos_referencia.json").write_text(json.dumps(
+        {"pesos": final, "ndcg5_todas_as_consultas": v, "n_consultas": r["n_consultas"]}, indent=2), encoding="utf-8")
+    print(r["tabela"].round(3).to_string(index=False))
+    print("pesos de producao:", final, "| NDCG@5 (in-sample):", round(v, 3))
+
+
 def main(args):
     if not args or args[0] not in ETAPAS and args[0] != "tudo":
         print("etapas:", ", ".join(ETAPAS))

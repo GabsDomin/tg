@@ -111,7 +111,18 @@ sumário, 1 Introdução (1.1–1.6), 2 Referencial Teórico (2.1–2.5), 3 Meto
   (publicado em 23/10/2026; código em github.com/GabsDomin/tg). Atualizar:
   `npx vercel deploy --prod --yes` dentro de `web/` (ver docs/PUBLICACAO.md). O motor de busca real, com recuperação semântica e avaliação (Fases
   3–4), ainda não existe: a busca atual é por nome + necessidade, em JS.
-- ⏳ Próxima: **T2.4** (K-Means) e **T2.5** (caracterização). Não começar a Fase 3 (motor de
+- ✅ **T2.4, T2.5, T4.1 e T4.2 da porta de referência concluídas** (73 testes). Ver
+  `docs/resultados_clusters.md` e `docs/resultados_avaliacao.md`.
+- ⚠️ **RESULTADO NEGATIVO CENTRAL (ARQUITETURA A26):** na avaliação contra fluxos reais
+  2023–24, o sistema de referência **não supera "só distância"** de forma significativa
+  (NDCG@5 0,726 vs 0,705; IC95% da diferença inclui 0) e a **folga (ICA/E2SFCA) tem peso
+  zero**. O que prevê é a **região de saúde**. O site foi atualizado: score = proximidade
+  0,3 + mesma região 0,5 + abertura 0,2; a folga aparece só como informação. **Isso muda a
+  narrativa do TG**: a contribuição passa a ser a avaliação honesta, a tipologia e a
+  caracterização, não "o buscador que sabe quem está lotado". Levar ao Prof. Ivan.
+- ⏳ Próxima: planejamento (porta 1) com recuperação textual e consultas escritas pelo grupo
+  (T3.1–T3.3, T4.1); depois os capítulos 4 e 5 do documento (T10).
+- (antigo) **T2.4** (K-Means) e **T2.5** (caracterização). Não começar a Fase 3 (motor de
   busca) antes de D0 (a exigência existe? qual a data?).
 - ⛔ Pendente de humano: D0–D7 (ARQUITETURA §10). Prioridade: **D0** (exigência escrita
   e data de entrega) e **D3** (ICA espacial, alinhar com o Prof. Ivan).
