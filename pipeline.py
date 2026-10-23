@@ -116,6 +116,12 @@ def acessibilidade():
     print(f"acessibilidade: {len(df)} linhas (3 camadas x 6 anos x 645 municipios)")
 
 
+@etapa("publicar")
+def publicar():
+    from tg.publicar import exportar
+    print(exportar.exportar())
+
+
 def main(args):
     if not args or args[0] not in ETAPAS and args[0] != "tudo":
         print("etapas:", ", ".join(ETAPAS))

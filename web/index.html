@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desertos de Cuidado em Álcool e Outras Drogas — SP</title>
+<meta name="description" content="Mapa e busca de CAPS AD nos 645 municípios de São Paulo: acessibilidade, demanda hospitalar e encaminhamento. Versão preliminar de um Trabalho de Graduação da FATEC Santana de Parnaíba.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  --bg:#f6f5f2; --panel:#ffffff; --ink:#1d2327; --muted:#5b666d; --line:#dfdcd5;
+  --accent:#1f5f8b; --accent-ink:#ffffff; --warn-bg:#fff4e0; --warn-ink:#6b4400; --bar:#1f5f8b; --bar-bg:#e8e5de;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14181b; --panel:#1c2125; --ink:#e8eaeb; --muted:#9aa5ab; --line:#2f373c;
+    --accent:#6fb1dc; --accent-ink:#0d1b24; --warn-bg:#2d2412; --warn-ink:#f1d9a6; --bar:#6fb1dc; --bar-bg:#2f373c;
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+header h1{font-size:17px;margin:0;font-weight:650}
+.tag{font-size:12px;padding:2px 8px;border-radius:99px;background:var(--warn-bg);color:var(--warn-ink);border:1px solid var(--line)}
+.aviso{margin:0;padding:8px 16px;background:var(--warn-bg);color:var(--warn-ink);font-size:13px;border-bottom:1px solid var(--line)}
+main{display:grid;grid-template-columns:420px 1fr;height:calc(100% - 100px);min-height:520px}
+aside{background:var(--panel);border-right:1px solid var(--line);overflow:auto;padding:0 0 24px}
+#map{height:100%;min-height:420px;background:var(--bg)}
+.leaflet-container{background:var(--bg)}
+nav[role=tablist]{display:flex;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:5}
+nav button{flex:1;padding:11px 8px;border:0;background:none;color:var(--muted);font:inherit;font-weight:600;cursor:pointer;border-bottom:3px solid transparent}
+nav button[aria-selected=true]{color:var(--accent);border-bottom-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+section.painel{padding:14px 16px}
+section.painel[hidden]{display:none}
+label{display:block;font-weight:600;font-size:13px;margin:12px 0 4px}
+input[type=search],input[type=text],select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+.check{display:flex;gap:8px;align-items:center;font-weight:500;margin-top:10px}
+.dica{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+.res{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;cursor:pointer;background:var(--bg)}
+.res:hover{border-color:var(--accent)}
+.res h3{margin:0;font-size:15px}
+.res .sub{font-size:12.5px;color:var(--muted)}
+.comp{display:grid;grid-template-columns:104px 1fr 38px;gap:6px;align-items:center;font-size:12px;margin-top:4px}
+.barra{height:7px;border-radius:4px;background:var(--bar-bg);overflow:hidden}
+.barra i{display:block;height:100%;background:var(--bar)}
+.nota{font-size:12.5px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px;margin:12px 0}
+h2{font-size:16px;margin:16px 0 6px}
+section.painel p,section.painel li{font-size:14px}
+.tools{position:absolute;z-index:500;top:10px;right:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;max-width:260px}
+.tools label{margin:0 0 4px}
+.legenda{background:var(--panel);color:var(--ink);padding:8px 10px;border-radius:8px;border:1px solid var(--line);font-size:12px;line-height:1.5}
+.legenda i{display:inline-block;width:14px;height:12px;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.2)}
+.mapwrap{position:relative;height:100%}
+@media (max-width:860px){
+  main{grid-template-columns:1fr;height:auto}
+  aside{border-right:0;border-bottom:1px solid var(--line);order:2;max-height:none}
+  .mapwrap{order:1;height:55vh}
+  .tools{top:auto;bottom:10px;right:10px;max-width:48vw;padding:6px 8px;font-size:13px}
+  .legenda{font-size:11px;padding:6px 8px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Desertos de Cuidado em Álcool e Outras Drogas · São Paulo</h1>
+  <span class="tag">Versão preliminar</span>
+</header>
+<p class="aviso">Ferramenta de apoio ao <b>planejamento e à gestão</b>, não de triagem clínica nem substituta de avaliação profissional.
+  Em situação de crise: <b>CVV 188</b> (24 h) ou <b>SAMU 192</b>. Os pesos de ranqueamento ainda não foram avaliados.</p>
+
+<main>
+<aside>
+  <nav role="tablist" aria-label="Seções">
+    <button role="tab" id="t-plan" aria-selected="true" aria-controls="p-plan">Planejamento</button>
+    <button role="tab" id="t-ref" aria-selected="false" aria-controls="p-ref">Referência</button>
+    <button role="tab" id="t-sobre" aria-selected="false" aria-controls="p-sobre">Sobre</button>
+  </nav>
+
+  <section class="painel" id="p-plan" role="tabpanel" aria-labelledby="t-plan">
+    <label for="q">Buscar municípios ou regiões</label>
+    <input type="search" id="q" placeholder="ex.: Bauru, Alta Sorocabana, Vale do Ribeira" autocomplete="off">
+    <label class="check"><input type="checkbox" id="semcaps"> Somente municípios sem CAPS AD</label>
+    <label for="regiao">Região de saúde</label>
+    <select id="regiao"><option value="">Todas</option></select>
+    <p class="dica">Ordena por <b>necessidade estimada</b>: baixa acessibilidade a CAPS AD combinada com alta taxa de internação. Com texto na busca, a correspondência de nome entra no score.</p>
+    <div id="res-plan" aria-live="polite"></div>
+  </section>
+
+  <section class="painel" id="p-ref" role="tabpanel" aria-labelledby="t-ref" hidden>
+    <label for="origem">Município de origem</label>
+    <input type="text" id="origem" list="lista-mun" placeholder="Digite o nome do município" autocomplete="off">
+    <datalist id="lista-mun"></datalist>
+    <p class="dica">Lista CAPS AD num raio de 150 km, ordenados por proximidade, mesma região de saúde, adequação da modalidade e <b>folga</b> (capacidade por demanda estimada na área do serviço).</p>
+    <div id="res-ref" aria-live="polite"></div>
+    <p class="nota">Estar na lista <b>não garante vaga</b>: o acesso de moradores de outros municípios depende de pactuação regional. Contate o serviço antes de encaminhar.</p>
+  </section>
+
+  <section class="painel" id="p-sobre" role="tabpanel" aria-labelledby="t-sobre" hidden>
+    <h2>O que é</h2>
+    <p>Protótipo do Trabalho de Graduação do curso de Ciência de Dados da FATEC Santana de Parnaíba. Compara a <b>demanda hospitalar</b> por transtornos F10–F19 (CID-10) com a <b>oferta de CAPS AD</b> nos 645 municípios paulistas.</p>
+    <h2>Como ler os números</h2>
+    <ul>
+      <li><b>Acessibilidade relativa</b>: índice E2SFCA com raio de 60 km. <b>1,0 = média estadual</b>; abaixo disso, menos capacidade por demanda estimada.</li>
+      <li><b>Taxa de internação</b>: internações F10–F19 por 100 mil habitantes de 15 anos ou mais, por ano, 2023–2024, suavizada por Bayes empírico (reduz a instabilidade em municípios pequenos).</li>
+      <li><b>Distância</b>: em linha reta, do ponto representativo do município ao serviço.</li>
+    </ul>
+    <h2>Limitações — leia antes de usar</h2>
+    <ul>
+      <li><b>Internação não é necessidade pura.</b> Regiões com hospital psiquiátrico de referência concentram internações (ex.: Espírito Santo do Pinhal), o que eleva a taxa de municípios vizinhos.</li>
+      <li><b>O índice de acessibilidade tem validação externa fraca</b> (correlação parcial ≈ −0,10 com internações futuras) e, em poder preditivo, não supera a simples quantidade de oferta próxima.</li>
+      <li>Só entram CAPS AD <b>habilitados</b> no CNES (dez/2024). Há CAPS que se denominam AD sem habilitação e CAPS de outras modalidades que atendem álcool e drogas; não estão contados.</li>
+      <li>Os pesos do ranqueamento de referência (proximidade 35%, folga 35%, região 15%, adequação 15%) são <b>provisórios e não foram avaliados</b>.</li>
+      <li>Município sem CAPS AD não significa município sem atendimento: a assistência pode ser regionalizada.</li>
+    </ul>
+    <h2>Fontes</h2>
+    <p>CNES e SIH/SUS (DATASUS, Ministério da Saúde); estimativas de população e Censo 2022 (IBGE). Apenas dados públicos agregados; nenhum dado individual é publicado.</p>
+    <p class="nota">Autores: Luís Davi Gomes de Santana, Gabriel Domingues Fernandes e Eloi Pires de Souza Ibiapino Filho. Orientador: Prof. Ivan Souza.</p>
+  </section>
+</aside>
+
+<div class="mapwrap">
+  <div class="tools">
+    <label for="camada">Camada do mapa</label>
+    <select id="camada">
+      <option value="a">Acessibilidade a CAPS AD</option>
+      <option value="t">Taxa de internação F10–F19</option>
+      <option value="d">Distância ao CAPS AD mais próximo</option>
+    </select>
+    <label class="check"><input type="checkbox" id="vsrv" checked> Mostrar CAPS AD</label>
+  </div>
+  <div id="map" role="application" aria-label="Mapa dos municípios de São Paulo"></div>
+</div>
+</main>
+<noscript><p class="aviso">Este site precisa de JavaScript para exibir o mapa e a busca.</p></noscript>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const norm = s => (s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();
+const fmt = (v,d=1) => (v==null||isNaN(v)) ? "—" : v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const hav = (a,b,c,d) => { const R=6371.0088,r=Math.PI/180,p=(c-a)*r,l=(d-b)*r;
+  const x=Math.sin(p/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(l/2)**2; return 2*R*Math.asin(Math.sqrt(x)); };
+const pctRank = arr => { const idx=arr.map((v,i)=>[v,i]).sort((x,y)=>x[0]-y[0]); const out=new Array(arr.length);
+  idx.forEach(([v,i],k)=>out[i]=arr.length>1?k/(arr.length-1):0); return out; };
+const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+let M=[], S=[], META={}, byCod={}, geoLayer, srvLayer, lineLayer, map;
+const RAMPA=["#fff5eb","#fdd0a2","#fd8d3c","#d94801","#7f2704"];
+const CAMADAS={ a:{rot:"Acessibilidade relativa (1 = média)",ruim:"baixo",d:2}, t:{rot:"Internações F10–F19 / 100 mil hab. 15+ / ano",ruim:"alto",d:0}, d:{rot:"Distância ao CAPS AD (km)",ruim:"alto",d:0} };
+
+Promise.all(["meta","municipios","servicos"].map(n=>fetch(`data/${n}.json`).then(r=>r.json())))
+ .then(([meta,m,s])=>fetch("data/municipios.geojson").then(r=>r.json()).then(g=>init(meta,m,s,g)))
+ .catch(e=>{ $("#res-plan").innerHTML=`<p class="nota">Não foi possível carregar os dados (${esc(e.message)}).</p>`; });
+
+function init(meta,m,s,geo){
+  META=meta; M=m; S=s; M.forEach(x=>byCod[x.c]=x);
+  const rk = { a:pctRank(M.map(x=>x.a)), t:pctRank(M.map(x=>x.t)) };
+  M.forEach((x,i)=>{ x.nec = 0.5*(1-rk.a[i]) + 0.5*rk.t[i]; x.rA=rk.a[i]; x.rT=rk.t[i]; x.nn=norm(x.n); x.nr=norm(x.r); });
+  const fr = pctRank(S.map(x=>x.f)); S.forEach((x,i)=>x.rf=fr[i]);
+  const reg=[...new Set(M.map(x=>x.r))].sort((a,b)=>a.localeCompare(b,"pt"));
+  $("#regiao").insertAdjacentHTML("beforeend",reg.map(r=>`<option>${esc(r)}</option>`).join(""));
+  $("#lista-mun").innerHTML=M.map(x=>`<option value="${esc(x.n)}">`).join("");
+  mapa(geo); abas(); $("#q").addEventListener("input",planejamento); $("#semcaps").addEventListener("change",planejamento);
+  $("#regiao").addEventListener("change",planejamento); $("#origem").addEventListener("change",referencia);
+  $("#camada").addEventListener("change",pintar); $("#vsrv").addEventListener("change",()=>$("#vsrv").checked?srvLayer.addTo(map):map.removeLayer(srvLayer));
+  planejamento();
+  const h=decodeURIComponent(location.hash); // link direto: #ref=Nome do Município
+  if(h.startsWith("#ref=")){ const x=M.find(m=>norm(m.n)===norm(h.slice(5))); if(x) verReferencia(x.c); }
+}
+
+function abas(){
+  const ids=["plan","ref","sobre"];
+  ids.forEach(id=>$("#t-"+id).addEventListener("click",()=>ids.forEach(o=>{
+    const on=o===id; $("#t-"+o).setAttribute("aria-selected",on); $("#p-"+o).hidden=!on; })));
+}
+
+function mapa(geo){
+  map=L.map("map",{zoomControl:true,attributionControl:true,zoomSnap:.25,maxZoom:12});
+  map.attributionControl.addAttribution("Malha: IBGE");
+  geoLayer=L.geoJSON(geo,{style:()=>({weight:.4,color:"#fff",fillOpacity:.85}),
+    onEachFeature:(f,l)=>{ const x=byCod[f.properties.c]; if(!x) return;
+      l.bindTooltip(esc(x.n)); l.on("click",()=>{ L.popup().setLatLng(l.getBounds().getCenter()).setContent(popupMun(x)).openOn(map); }); }}).addTo(map);
+  srvLayer=L.layerGroup(S.map(s=>L.circleMarker([s.la,s.lo],{radius:5,weight:1.5,color:"#fff",fillColor:"#111",fillOpacity:.95})
+    .bindPopup(`<b>${esc(s.n)}</b><br>${esc(s.mn)} · CAPS ${esc(s.mo)}<br>Folga relativa: ${fmt(s.f,2)} (1 = média)`))).addTo(map);
+  map.fitBounds(geoLayer.getBounds(),{padding:[10,10]});
+  pintar();
+}
+
+function popupMun(x){ return `<b>${esc(x.n)}</b><br>${esc(x.r)}<br>População (2024): ${x.p.toLocaleString("pt-BR")}<br>
+  CAPS AD no município: ${x.k}<br>Acessibilidade relativa: ${fmt(x.a,2)}<br>Taxa de internação: ${fmt(x.t,0)} /100 mil<br>
+  Distância ao CAPS AD mais próximo: ${fmt(x.d,0)} km<br><a href="#" onclick="verReferencia('${x.c}');return false">Ver encaminhamento</a>`; }
+
+function pintar(){
+  const k=$("#camada").value, vals=M.map(x=>x[k]).filter(v=>v!=null&&!isNaN(v)).sort((a,b)=>a-b);
+  const cortes=[1,2,3,4].map(i=>vals[Math.floor(i*vals.length/5)]);
+  const ruimBaixo = CAMADAS[k].ruim==="baixo";
+  const cor = v => { if(v==null||isNaN(v)) return "#bbb"; let i=cortes.filter(c=>v>=c).length; if(ruimBaixo) i=4-i; return RAMPA[i]; };
+  geoLayer.eachLayer(l=>{ const x=byCod[l.feature.properties.c]; if(x) l.setStyle({fillColor:cor(x[k])}); });
+  if(map._leg) map.removeControl(map._leg);
+  const leg=L.control({position:"bottomleft"});
+  leg.onAdd=()=>{ const d=L.DomUtil.create("div","legenda"); const lim=[vals[0],...cortes,vals[vals.length-1]];
+    const dec=CAMADAS[k].d; let h=`<b>${CAMADAS[k].rot}</b><br>`;
+    for(let i=0;i<5;i++){ const idx=ruimBaixo?4-i:i; h+=`<i style="background:${RAMPA[idx]}"></i>${fmt(lim[i],dec)} – ${fmt(lim[i+1],dec)}<br>`; }
+    h+=`<span style="color:var(--muted)">Tons escuros = ${CAMADAS[k].ruim==="baixo"?"menor acessibilidade":"valores mais altos"} (quintis)</span>`;
+    d.innerHTML=h; return d; };
+  leg.addTo(map); map._leg=leg;
+}
+
+function barras(comps){ return comps.map(([n,v,w])=>`<div class="comp"><span>${n} (${Math.round(w*100)}%)</span>
+  <span class="barra" role="img" aria-label="${n}: ${Math.round(v*100)} de 100"><i style="width:${Math.round(v*100)}%"></i></span><span>${Math.round(v*100)}</span></div>`).join(""); }
+
+const STOP=new Set(["de","do","da","dos","das","e","em","no","na","caps","ad","sem","com","municipios","municipio","onde","regiao","regioes","priorizar","para","a","o","os","as"]);
+function planejamento(){
+  const q=norm($("#q").value), toks=q.split(/\s+/).filter(t=>t&&!STOP.has(t));
+  const sem=$("#semcaps").checked||/\bsem (caps|servico)/.test(q), reg=$("#regiao").value;
+  let L_=M.filter(x=>(!sem||x.k===0)&&(!reg||x.r===reg));
+  L_=L_.map(x=>{ let rel=0; if(toks.length){ rel=toks.filter(t=>x.nn.includes(t)).length/toks.length*1 + (toks.filter(t=>x.nr.includes(t)).length/toks.length)*0.5; rel=Math.min(rel,1); }
+    return {x,rel,s:toks.length?0.3*rel+0.7*x.nec:x.nec}; });
+  if(toks.length) L_=L_.filter(o=>o.rel>0);
+  L_.sort((a,b)=>b.s-a.s);
+  const top=L_.slice(0,15);
+  $("#res-plan").innerHTML = top.length ? `<p class="dica">${L_.length} município(s) · mostrando ${top.length}</p>` + top.map(o=>{
+    const w=toks.length?[0.3,0.7]:[0,1];
+    const comps=[["Baixo acesso",1-o.x.rA,w[1]*0.5],["Alta internação",o.x.rT,w[1]*0.5]]; if(toks.length) comps.unshift(["Texto",o.rel,w[0]]);
+    return `<div class="res" tabindex="0" data-c="${o.x.c}"><h3>${esc(o.x.n)}</h3><div class="sub">${esc(o.x.r)} · ${o.x.k?o.x.k+" CAPS AD":"sem CAPS AD"} · ${fmt(o.x.d,0)} km do mais próximo</div>
+    <div class="sub">Acessibilidade ${fmt(o.x.a,2)} · Internação ${fmt(o.x.t,0)}/100 mil</div>${barras(comps)}</div>`; }).join("") : `<p class="nota">Nenhum município encontrado com esses critérios.</p>`;
+  document.querySelectorAll("#res-plan .res").forEach(e=>{ const go=()=>{ const x=byCod[e.dataset.c]; map.setView([x.la,x.lo],10); L.popup().setLatLng([x.la,x.lo]).setContent(popupMun(x)).openOn(map); };
+    e.addEventListener("click",go); e.addEventListener("keydown",ev=>{ if(ev.key==="Enter") go(); }); });
+}
+
+window.verReferencia = c => { $("#origem").value=byCod[c].n; $("#t-ref").click(); referencia(); };
+function referencia(){
+  const o=M.find(x=>norm(x.n)===norm($("#origem").value)); const out=$("#res-ref");
+  if(lineLayer){ map.removeLayer(lineLayer); lineLayer=null; }
+  if(!o){ out.innerHTML=`<p class="nota">Selecione um município da lista.</p>`; return; }
+  const W=META.pesos_referencia, reg=o.r;
+  const cand=S.map(s=>({s,km:hav(o.la,o.lo,s.la,s.lo)})).filter(c=>c.km<=150).map(c=>{
+    const prox=1-c.km/150, mesma=byCod[c.s.m].r===reg?1:0, adeq=c.s.mo==="AD"?0.7:1, fol=c.s.rf;
+    const comps=[["Proximidade",prox,W.proximidade],["Mesma região",mesma,W.regiao],["Adequação",adeq,W.adequacao],["Folga",fol,W.folga]];
+    return {...c,comps,score:comps.reduce((a,[,v,w])=>a+v*w,0)}; }).sort((a,b)=>b.score-a.score).slice(0,8);
+  out.innerHTML = (o.k?`<p class="nota"><b>${esc(o.n)}</b> já tem ${o.k} CAPS AD habilitado(s).</p>`:`<p class="nota"><b>${esc(o.n)}</b> não tem CAPS AD habilitado.</p>`)
+   + (cand.length? cand.map((c,i)=>`<div class="res"><h3>${i+1}. ${esc(c.s.n)}</h3><div class="sub">${esc(c.s.mn)} · CAPS ${esc(c.s.mo)} · ${fmt(c.km,0)} km · score ${fmt(c.score*100,0)}</div>${barras(c.comps)}</div>`).join("")
+    : `<p class="nota">Nenhum CAPS AD habilitado em até 150 km.</p>`);
+  lineLayer=L.layerGroup(cand.slice(0,3).map(c=>L.polyline([[o.la,o.lo],[c.s.la,c.s.lo]],{color:"#1f5f8b",weight:2,dashArray:"5 5"}))).addTo(map);
+  map.fitBounds(L.latLngBounds([[o.la,o.lo],...cand.slice(0,3).map(c=>[c.s.la,c.s.lo])]).pad(.3));
+}
+</script>
+</body>
+</html>

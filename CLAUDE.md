@@ -103,6 +103,13 @@ sumário, 1 Introdução (1.1–1.6), 2 Referencial Teórico (2.1–2.5), 3 Meto
   com correlação parcial. Defender o E2SFCA como ferramenta conceitual (acesso entre
   fronteiras + `R_j` para a porta de referência), não como índice validado.
 - ⚠️ A22: a "demanda" por internação reflete polos hospitalares (ex.: Pinhal, 18× a média).
+- ✅ **Site estático pronto em `web/`** (mapa + busca Planejamento/Referência + Sobre),
+  para a **Vercel** (Root Directory = `web`). Guia em `docs/PUBLICACAO.md`. **Mudança de
+  arquitetura:** a Vercel não hospeda Streamlit, então o site é HTML/JS lendo `web/data/*.json`
+  (gerado por `python pipeline.py publicar`). Rotulado "Versão preliminar"; os pesos de
+  referência (`web/data/meta.json`) NÃO foram avaliados. Ainda **não publicado** (exige GitHub
+  + login do grupo, D7). O motor de busca real, com recuperação semântica e avaliação (Fases
+  3–4), ainda não existe: a busca atual é por nome + necessidade, em JS.
 - ⏳ Próxima: **T2.4** (K-Means) e **T2.5** (caracterização). Não começar a Fase 3 (motor de
   busca) antes de D0 (a exigência existe? qual a data?).
 - ⛔ Pendente de humano: D0–D7 (ARQUITETURA §10). Prioridade: **D0** (exigência escrita
