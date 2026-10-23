@@ -5,18 +5,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Desertos de Cuidado em Álcool e Outras Drogas — SP</title>
 <meta name="description" content="Mapa e busca de CAPS AD nos 645 municípios de São Paulo: acessibilidade, demanda hospitalar e encaminhamento. Versão preliminar de um Trabalho de Graduação da FATEC Santana de Parnaíba.">
+<script>
+/* aplica o tema antes de pintar a pagina (evita "flash"). ?tema=escuro|claro tambem funciona. */
+(function(){ var t=null; try{ t=new URLSearchParams(location.search).get("tema")||localStorage.getItem("tema"); }catch(e){}
+  if(t==="escuro") document.documentElement.setAttribute("data-theme","dark");
+  else if(t==="claro") document.documentElement.setAttribute("data-theme","light"); })();
+</script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root{
   --bg:#f6f5f2; --panel:#ffffff; --ink:#1d2327; --muted:#5b666d; --line:#dfdcd5;
   --accent:#1f5f8b; --accent-ink:#ffffff; --warn-bg:#fff4e0; --warn-ink:#6b4400; --bar:#1f5f8b; --bar-bg:#e8e5de;
+  --marker:#111; --markerline:#fff; --mapline:#fff; --sombra:rgba(0,0,0,.18);
+  color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#14181b; --panel:#1c2125; --ink:#e8eaeb; --muted:#9aa5ab; --line:#2f373c;
     --accent:#6fb1dc; --accent-ink:#0d1b24; --warn-bg:#2d2412; --warn-ink:#f1d9a6; --bar:#6fb1dc; --bar-bg:#2f373c;
+    --marker:#f4f1ea; --markerline:#14181b; --mapline:#14181b; --sombra:rgba(0,0,0,.5);
+    color-scheme:dark;
   }
 }
+:root[data-theme="dark"]{
+  --bg:#14181b; --panel:#1c2125; --ink:#e8eaeb; --muted:#9aa5ab; --line:#2f373c;
+  --accent:#6fb1dc; --accent-ink:#0d1b24; --warn-bg:#2d2412; --warn-ink:#f1d9a6; --bar:#6fb1dc; --bar-bg:#2f373c;
+  --marker:#f4f1ea; --markerline:#14181b; --mapline:#14181b; --sombra:rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+path.mun{stroke:var(--mapline)}
+path.srv{fill:var(--marker);stroke:var(--markerline)}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink)}
+.leaflet-popup-content a{color:var(--accent)}
+.leaflet-bar a,.leaflet-bar a:hover{background:var(--panel);color:var(--ink);border-color:var(--line)}
+.leaflet-tooltip{background:var(--panel);color:var(--ink);border-color:var(--line)}
+.leaflet-control-attribution{background:color-mix(in srgb,var(--panel) 80%,transparent)!important;color:var(--muted)}
+.leaflet-control-attribution a{color:var(--accent)}
+#tema{margin-left:auto;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -66,6 +91,7 @@ section.painel p,section.painel li{font-size:14px}
 <header>
   <h1>Desertos de Cuidado em Álcool e Outras Drogas · São Paulo</h1>
   <span class="tag">Versão preliminar</span>
+  <button id="tema" type="button" aria-label="Alternar tema: automático, claro ou escuro" title="Alternar tema"></button>
 </header>
 <p class="aviso">Ferramenta de apoio ao <b>planejamento e à gestão</b>, não de triagem clínica nem substituta de avaliação profissional.
   Em situação de crise: <b>CVV 188</b> (24 h) ou <b>SAMU 192</b>. Os pesos de ranqueamento ainda não foram avaliados.</p>
@@ -171,6 +197,16 @@ function init(meta,m,s,geo){
   if(h.startsWith("#ref=")){ const x=M.find(m=>norm(m.n)===norm(h.slice(5))); if(x) verReferencia(x.c); }
 }
 
+/* tema: automatico (segue o sistema) -> claro -> escuro; a escolha fica salva no navegador */
+const TEMAS=[["auto","Tema: automático"],["claro","Tema: claro"],["escuro","Tema: escuro"]];
+function temaAtual(){ const a=document.documentElement.getAttribute("data-theme"); return a==="dark"?"escuro":a==="light"?"claro":"auto"; }
+function aplicarTema(t){ const r=document.documentElement;
+  if(t==="escuro") r.setAttribute("data-theme","dark"); else if(t==="claro") r.setAttribute("data-theme","light"); else r.removeAttribute("data-theme");
+  try{ t==="auto"?localStorage.removeItem("tema"):localStorage.setItem("tema",t); }catch(e){}
+  $("#tema").textContent=TEMAS.find(x=>x[0]===t)[1]; }
+$("#tema").addEventListener("click",()=>aplicarTema(TEMAS[(TEMAS.findIndex(x=>x[0]===temaAtual())+1)%3][0]));
+$("#tema").textContent=TEMAS.find(x=>x[0]===temaAtual())[1];
+
 function abas(){
   const ids=["plan","ref","sobre"];
   ids.forEach(id=>$("#t-"+id).addEventListener("click",()=>ids.forEach(o=>{
@@ -180,10 +216,10 @@ function abas(){
 function mapa(geo){
   map=L.map("map",{zoomControl:true,attributionControl:true,zoomSnap:.25,maxZoom:12});
   map.attributionControl.addAttribution("Malha: IBGE");
-  geoLayer=L.geoJSON(geo,{style:()=>({weight:.4,color:"#fff",fillOpacity:.85}),
+  geoLayer=L.geoJSON(geo,{style:()=>({weight:.4,className:"mun",fillOpacity:.85}),
     onEachFeature:(f,l)=>{ const x=byCod[f.properties.c]; if(!x) return;
       l.bindTooltip(esc(x.n)); l.on("click",()=>{ L.popup().setLatLng(l.getBounds().getCenter()).setContent(popupMun(x)).openOn(map); }); }}).addTo(map);
-  srvLayer=L.layerGroup(S.map(s=>L.circleMarker([s.la,s.lo],{radius:5,weight:1.5,color:"#fff",fillColor:"#111",fillOpacity:.95})
+  srvLayer=L.layerGroup(S.map(s=>L.circleMarker([s.la,s.lo],{radius:5,weight:1.5,className:"srv",fillOpacity:.95})
     .bindPopup(`<b>${esc(s.n)}</b><br>${esc(s.mn)} · CAPS ${esc(s.mo)}<br>Folga relativa: ${fmt(s.f,2)} (1 = média)`))).addTo(map);
   map.fitBounds(geoLayer.getBounds(),{padding:[10,10]});
   pintar();
