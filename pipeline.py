@@ -92,6 +92,30 @@ def distancias():
     print(f"distancias: {len(df)} pares municipio-servico ate {dist.RAIO_MAX_KM:.0f} km")
 
 
+@etapa("demanda")
+def demanda():
+    from tg.config import CFG
+    from tg.indicadores import demanda as dm
+    CFG.tratado.mkdir(parents=True, exist_ok=True)
+    df = dm.construir_demanda()
+    df.to_parquet(CFG.tratado / "demanda.parquet", index=False)
+    r = df.groupby("bloco")[["gama_a_int", "gama_b_int", "gama_a_obito", "gama_b_obito"]].first()
+    print(r.round(3).to_string())
+
+
+@etapa("acessibilidade")
+def acessibilidade():
+    from tg.config import CFG
+    from tg.indicadores import acessibilidade as ac, oferta as of
+    CFG.tratado.mkdir(parents=True, exist_ok=True)
+    cap = of.capacidade_modalidade()
+    cap.to_csv(CFG.tratado / "capacidade_modalidade.csv", index=False)
+    print(cap.round(1).to_string(index=False))
+    df = ac.construir_acessibilidade()
+    df.to_parquet(CFG.tratado / "acessibilidade.parquet", index=False)
+    print(f"acessibilidade: {len(df)} linhas (3 camadas x 6 anos x 645 municipios)")
+
+
 def main(args):
     if not args or args[0] not in ETAPAS and args[0] != "tudo":
         print("etapas:", ", ".join(ETAPAS))

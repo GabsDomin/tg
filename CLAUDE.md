@@ -94,7 +94,17 @@ sumário, 1 Introdução (1.1–1.6), 2 Referencial Teórico (2.1–2.5), 3 Meto
   territorio servicos internacoes obitos raas distancias`.
 - ✅ Internações e óbitos conferidos contra o **TabNet oficial** (internações −0,14% a
   −0,30%; óbitos 0,0%). Scripts em `scripts/exploracao/conferir_tabnet_*.py`.
-- ⏳ Próxima tarefa: **T2.1** (demanda suavizada) do PLANO_EXECUCAO.
+- ✅ **T2.1 concluída**; **T2.2 e T2.3 implementadas de forma provisória** (`[~]` no plano:
+  rodam com a recomendação O1 + E2SFCA, mas D1/D2/D3 ainda são do grupo). 47 testes.
+  Reconstruir: `python pipeline.py demanda acessibilidade`.
+- ⚠️ **Resultado que muda a conversa com o Prof. Ivan (ARQUITETURA A23):** o E2SFCA tem
+  validação externa fraca (ρ parcial ≈ −0,10) e **não prevê melhor que a oferta pura**.
+  O plano original tinha um viés mecânico (persistência da demanda, ρ = 0,84), já corrigido
+  com correlação parcial. Defender o E2SFCA como ferramenta conceitual (acesso entre
+  fronteiras + `R_j` para a porta de referência), não como índice validado.
+- ⚠️ A22: a "demanda" por internação reflete polos hospitalares (ex.: Pinhal, 18× a média).
+- ⏳ Próxima: **T2.4** (K-Means) e **T2.5** (caracterização). Não começar a Fase 3 (motor de
+  busca) antes de D0 (a exigência existe? qual a data?).
 - ⛔ Pendente de humano: D0–D7 (ARQUITETURA §10). Prioridade: **D0** (exigência escrita
   e data de entrega) e **D3** (ICA espacial, alinhar com o Prof. Ivan).
 - ⚠️ Achados novos que o grupo precisa conhecer (ARQUITETURA A12–A21): óbitos F1x de SP

@@ -120,7 +120,7 @@
 
 ## Fase 2 — Núcleo analítico
 
-### [ ] T2.1 Demanda suavizada
+### [x] T2.1 Demanda suavizada
 - Bayes empírico (Poisson-gama, ou Marshall) para D_int e D_obito, em dois blocos:
   2019–22 e 2023–24.
 - **Aceite:**
@@ -129,13 +129,13 @@
     acima de 100 mil hab.;
   - gráfico funil (taxa × população) salvo em `figuras/`.
 
-### [ ] T2.2 Oferta em camadas e capacidade ⛔D1 ⛔D2
+### [~] T2.2 Oferta em camadas e capacidade ⛔D1 ⛔D2
 - O1, O2, O3 conforme ARQUITETURA §5.2.
 - Capacidade por modalidade = razão das medianas de pacientes/mês em 2019–22.
 - **Aceite:** tabela de capacidade por modalidade salva; contagem de serviços por camada e
   ano.
 
-### [ ] T2.3 ICA municipal e E2SFCA ⛔D3
+### [~] T2.3 ICA municipal e E2SFCA ⛔D3
 - `indicadores/acessibilidade.py` com função pura
   `e2sfca(oferta, demanda, distancias, raio, faixas, pesos)`.
 - **Aceite:**
