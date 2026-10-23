@@ -1,0 +1,131 @@
+{
+ "rotulo": "Rodada 3 (final: apos corrigir 7 pontos; otimista)",
+ "gerado_em": "2026-10-23",
+ "n_consultas": 58,
+ "n_ranqueadas": 47,
+ "autoria": "rascunho do assistente; o grupo deve substituir/ampliar",
+ "excluidas": [
+  {
+   "id": "P22",
+   "texto": "municípios do Alto Tietê com alta internação",
+   "motivo": "gabarito vazio (nenhum item satisfaz a consulta em 2023-24): NDCG indefinido"
+  }
+ ],
+ "corpus": {
+  "municipios": 645,
+  "regioes": 62,
+  "servicos": 103,
+  "documentos": 810
+ },
+ "por_escopo": {
+  "planejamento (municípios)": {
+   "n": 27,
+   "sistema": {
+    "ndcg": 0.8501386504931929,
+    "p": 0.7777777777777778,
+    "mrr": 0.9444444444444444
+   },
+   "bm25": {
+    "ndcg": 0.31998619043384385,
+    "p": 0.41851851851851857,
+    "mrr": 0.5566377649121675
+   },
+   "necessidade": {
+    "ndcg": 0.21348305126700837,
+    "p": 0.1925925925925926,
+    "mrr": 0.31999164748827913
+   },
+   "hibrido": {
+    "ndcg": 0.36028037379775174,
+    "p": 0.3,
+    "mrr": 0.4859894442606169
+   }
+  },
+  "regiões": {
+   "n": 6,
+   "sistema": {
+    "ndcg": 0.9927702934001209,
+    "p": 0.7833333333333333,
+    "mrr": 1
+   },
+   "bm25": {
+    "ndcg": 0.6661848491188643,
+    "p": 0.7000000000000001,
+    "mrr": 0.9166666666666666
+   },
+   "necessidade": {
+    "ndcg": 0.645483719490995,
+    "p": 0.65,
+    "mrr": 0.676010101010101
+   }
+  },
+  "serviços": {
+   "n": 8,
+   "sistema": {
+    "ndcg": 0.992047401475131,
+    "p": 0.48750000000000004,
+    "mrr": 1
+   },
+   "bm25": {
+    "ndcg": 0.8281316792236567,
+    "p": 0.3375,
+    "mrr": 0.9166666666666667
+   }
+  },
+  "navegacional": {
+   "n": 6,
+   "sistema": {
+    "ndcg": 1,
+    "p": 0.09999999999999999,
+    "mrr": 1
+   },
+   "bm25": {
+    "ndcg": 0.8333333333333334,
+    "p": 0.08333333333333333,
+    "mrr": 0.8333333333333334
+   },
+   "necessidade": {
+    "ndcg": 0,
+    "p": 0,
+    "mrr": 0.01343581221727675
+   },
+   "hibrido": {
+    "ndcg": 0.3333333333333333,
+    "p": 0.03333333333333333,
+    "mrr": 0.3436892968142968
+   }
+  }
+ },
+ "geral": {
+  "ndcg": 0.9116328624578295,
+  "p": 0.642553191489362,
+  "mrr": 0.9680851063829787
+ },
+ "diferencas": {
+  "bm25": {
+   "n": 47,
+   "dif": 0.3954245716021648,
+   "lo": 0.28436069850636,
+   "hi": 0.5067293566639464
+  },
+  "necessidade": {
+   "n": 39,
+   "dif": 0.6480364262195316,
+   "lo": 0.5303611444920328,
+   "hi": 0.7607631429883995
+  },
+  "hibrido": {
+   "n": 33,
+   "dif": 0.5220052566902093,
+   "lo": 0.3898146884875837,
+   "hi": 0.657107826964601
+  }
+ },
+ "interpretacao": {
+  "n": 58,
+  "exato": 1,
+  "intencao": 1,
+  "precisao": 1,
+  "revocacao": 1
+ }
+}

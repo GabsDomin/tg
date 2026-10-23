@@ -120,6 +120,7 @@ def acessibilidade():
 def publicar():
     from tg.publicar import exportar
     print(exportar.exportar())
+    print(exportar.exportar_avaliacao_busca())
 
 
 @etapa("clusters")
@@ -174,6 +175,12 @@ def avaliacao_referencia():
     final = {c: float(x) for c, x in zip(rf.COMPONENTES, w)}
     (CFG.tratado / "pesos_referencia.json").write_text(json.dumps(
         {"pesos": final, "ndcg5_todas_as_consultas": v, "n_consultas": r["n_consultas"]}, indent=2), encoding="utf-8")
+    (CFG.tratado / "avaliacao_referencia.json").write_text(json.dumps({
+        "n_consultas": r["n_consultas"], "n_dev": r["n_dev"], "n_teste": r["n_teste"],
+        "tabela": r["tabela"].to_dict("records"), "ablacao": r["ablacao"].to_dict("records"), "estratos": r["estratos"].to_dict("records"),
+        "diffs": {k: [float(x) for x in v] for k, v in r["diffs"].items()},
+        "repeticoes": {k: [float(x) for x in v] for k, v in r["repeticoes"].items()},
+        "pesos": final, "pesos_dev": {k: float(x) for k, x in r["pesos"].items()}}, ensure_ascii=False, default=float), encoding="utf-8")
     print(r["tabela"].round(3).to_string(index=False))
     print("pesos de producao:", final, "| NDCG@5 (in-sample):", round(v, 3))
 

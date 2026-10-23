@@ -29,7 +29,15 @@ def test_sem_colunas_proibidas(nome):
 
 def test_nao_publica_contagens_absolutas_de_pacientes():
     d = json.loads((DATA / "municipios.json").read_text(encoding="utf-8"))
-    assert set(d[0]) == {"c", "n", "r", "la", "lo", "p", "a", "t", "d", "k", "g"}   # so taxas e indices
+    assert set(d[0]) == {"c", "n", "r", "ri", "la", "lo", "p", "a", "t", "d", "k", "g", "dz", "gs", "lit"}   # so taxas e indices
+    reg = json.loads((DATA / "regioes.json").read_text(encoding="utf-8"))
+    assert len(reg) == 62 and sum(r["nm"] for r in reg) == 645
+    assert "n_int" not in reg[0] and "py" not in reg[0]                      # sem contagens de pacientes
+
+
+def test_grande_sp_tem_os_39_municipios_da_rmsp():
+    d = json.loads((DATA / "municipios.json").read_text(encoding="utf-8"))
+    assert sum(m["gs"] for m in d) == 39 and sum(m["dz"] for m in d) == 66
 
 
 def test_645_municipios_e_acentos_preservados():

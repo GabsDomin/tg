@@ -14,6 +14,15 @@ A Vercel não hospeda Streamlit, por isso o site lê só dados pré-computados.
 - `web/.env.local` e `web/.vercel/` contêm token/ids da Vercel: estão no `web/.gitignore`.
   **Nunca** versionar.
 
+## Verificar o site (antes e depois de publicar)
+```
+node scripts/busca/servir.mjs 8766                                   # servidor local (MIME correto p/ modulos ES)
+node scripts/busca/e2e.mjs http://localhost:8766/ <pasta> tudo        # 18 verificacoes: mobile 390x844 + desktop
+node scripts/busca/e2e.mjs https://tg-red.vercel.app/ <pasta> tudo    # o mesmo, contra o site no ar
+node --test scripts/busca/testes_motor.mjs                            # regressao do motor (tambem roda no pytest)
+```
+Requer o Edge instalado. O `python -m http.server` pode servir `.js` com tipo errado no Windows: use o servidor acima.
+
 ## Atualizar os dados
 ```
 .venv\Scripts\python.exe -I pipeline.py demanda acessibilidade publicar

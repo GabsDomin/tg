@@ -120,6 +120,15 @@ sumário, 1 Introdução (1.1–1.6), 2 Referencial Teórico (2.1–2.5), 3 Meto
   0,3 + mesma região 0,5 + abertura 0,2; a folga aparece só como informação. **Isso muda a
   narrativa do TG**: a contribuição passa a ser a avaliação honesta, a tipologia e a
   caracterização, não "o buscador que sabe quem está lotado". Levar ao Prof. Ivan.
+- ✅ **MOTOR DE BUSCA implementado e no ar** (23/10/2026): `web/js/busca.js` (BM25 + interpretação de
+  linguagem natural + ranqueamento explicável; corpus de 822 documentos; sem IA generativa e **sem
+  busca semântica por vetores**). Interface redesenhada em torno da busca (`web/js/app.js`,
+  `web/css/app.css`): chips "Como entendi" removíveis, cartões explicáveis, mapa interligado,
+  autocompletar, correção de digitação, link compartilhável, tema escuro, mobile real.
+  Avaliação: `docs/resultados_busca.md` — **rodada 1 (número a citar): NDCG@10 = 0,809**, +0,30 sobre
+  BM25 puro (IC95% 0,18–0,42); rodada final 0,912 é otimista. Consultas escritas pelo assistente:
+  **o grupo deve substituir/ampliar** (`avaliacao/LEIAME.md`). Testes: `pytest` (inclui o JS),
+  `node scripts/busca/e2e.mjs <url> <pasta> tudo` (ponta a ponta, mobile 390x844 + desktop).
 - 🚨 **PRAZO (descoberto em 23/10/2026):** o Termo T3 assinado (03/09/2026, em Downloads) fixa a
   **entrega da versão final em 16/10/2026** ("a não entrega reprova o trabalho"). O documento de
   15/10 (`TG_CAPS 1.docx`) tem os cap. 4 e 5 vazios. **Confirmar com o Prof. Ivan** se a data era do
