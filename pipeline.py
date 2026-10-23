@@ -39,6 +39,59 @@ def territorio():
     print(f"municipios: {len(m)} | regioes de saude: {m['regiao_saude'].nunique()} | populacao: {len(p)} linhas")
 
 
+@etapa("servicos")
+def servicos():
+    from tg.config import CFG
+    from tg.tratamento import servicos as s
+    CFG.tratado.mkdir(parents=True, exist_ok=True)
+    df = s.construir_servicos()
+    df.to_parquet(CFG.tratado / "servicos.parquet", index=False)
+    print(df.groupby(["competencia", "tipo_servico"]).size().unstack(fill_value=0).to_string())
+
+
+@etapa("internacoes")
+def internacoes():
+    from tg.config import CFG
+    from tg.tratamento import sih
+    CFG.tratado.mkdir(parents=True, exist_ok=True)
+    base, fluxo, exc = sih.construir_internacoes()
+    base.to_parquet(CFG.tratado / "internacoes.parquet", index=False)
+    fluxo.to_parquet(CFG.tratado / "internacoes_fluxo.parquet", index=False)
+    print(base.groupby("ano")[["n_internacoes", "n_aih_longa"]].sum().to_string())
+    print(f"residentes fora de SP excluidos (registros F1x): {exc}")
+
+
+@etapa("obitos")
+def obitos():
+    from tg.config import CFG
+    from tg.tratamento import sim
+    CFG.tratado.mkdir(parents=True, exist_ok=True)
+    df = sim.construir_obitos()
+    df.to_parquet(CFG.tratado / "obitos.parquet", index=False)
+    print(df.groupby("ano")["n_obitos"].sum().to_string())
+
+
+@etapa("raas")
+def raas():
+    from tg.config import CFG
+    from tg.tratamento import sia_ps
+    CFG.tratado.mkdir(parents=True, exist_ok=True)
+    carga, fluxos = sia_ps.construir_raas()
+    carga.to_parquet(CFG.tratado / "raas_carga.parquet", index=False)
+    fluxos.to_parquet(CFG.tratado / "raas_fluxos.parquet", index=False)
+    print(f"raas_carga: {len(carga)} linhas | raas_fluxos: {len(fluxos)} linhas")
+
+
+@etapa("distancias")
+def distancias():
+    from tg.config import CFG
+    from tg.tratamento import distancias as dist
+    CFG.tratado.mkdir(parents=True, exist_ok=True)
+    df = dist.construir_distancias()
+    df.to_parquet(CFG.tratado / "distancias.parquet", index=False)
+    print(f"distancias: {len(df)} pares municipio-servico ate {dist.RAIO_MAX_KM:.0f} km")
+
+
 def main(args):
     if not args or args[0] not in ETAPAS and args[0] != "tudo":
         print("etapas:", ", ".join(ETAPAS))

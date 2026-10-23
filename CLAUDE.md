@@ -87,9 +87,20 @@ sumário, 1 Introdução (1.1–1.6), 2 Referencial Teórico (2.1–2.5), 3 Meto
 - ✅ Ambiente: `.venv` (Python 3.12, via `uv`), `requirements.txt`.
 - ✅ Dados de diagnóstico em `dados/bruto/`, saída em `dados/tratado/caps_sp_202609.csv`.
 - ✅ Arquitetura e plano escritos em `docs/`.
-- ⏳ Próxima tarefa: **T0.1** do PLANO_EXECUCAO.
+- ✅ **Fase 0 e Fase 1 concluídas (T0.1–T1.6)** em 23/10/2026. 33 testes passando
+  (`.venv\Scripts\python.exe -m pytest -q`). Tabelas em `dados/tratado/`:
+  `municipios`, `populacao`, `servicos`, `internacoes`, `internacoes_fluxo`, `obitos`,
+  `raas_carga`, `raas_fluxos`, `distancias`. Reconstruir: `python pipeline.py coleta
+  territorio servicos internacoes obitos raas distancias`.
+- ✅ Internações e óbitos conferidos contra o **TabNet oficial** (internações −0,14% a
+  −0,30%; óbitos 0,0%). Scripts em `scripts/exploracao/conferir_tabnet_*.py`.
+- ⏳ Próxima tarefa: **T2.1** (demanda suavizada) do PLANO_EXECUCAO.
 - ⛔ Pendente de humano: D0–D7 (ARQUITETURA §10). Prioridade: **D0** (exigência escrita
   e data de entrega) e **D3** (ICA espacial, alinhar com o Prof. Ivan).
+- ⚠️ Achados novos que o grupo precisa conhecer (ARQUITETURA A12–A21): óbitos F1x de SP
+  têm quebra de +72% em 2020 (causa desconhecida); população sem estimativa 2022/2023;
+  conversor do CNES lista 62 regiões de saúde (documento diz 63); a oferta de CAPS AD
+  cresceu 96 → 123 entre 2019 e 2026.
 
 ### Números-chave (CNES 2026-09; SIA/PS dez/2024)
 - 649 CAPS em 293 municípios.

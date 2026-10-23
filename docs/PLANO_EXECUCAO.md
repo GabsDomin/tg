@@ -22,7 +22,7 @@
 
 ## Fase 0 — Fundação
 
-### [ ] T0.1 Repositório e configuração
+### [x] T0.1 Repositório e configuração
 - `git init` e primeiro commit, com o `.gitignore` já existente. **Não** criar remoto nem
   dar push sem autorização (D7).
 - Criar `config.yaml` com:
@@ -40,7 +40,7 @@
 - **Aceite:** `python -c "from tg.config import CFG; print(CFG.uf)"` imprime `SP`, com o
   pacote instalado via `uv pip install -e .` (crie um `pyproject.toml` mínimo).
 
-### [ ] T0.2 Coleta FTP com cache
+### [x] T0.2 Coleta FTP com cache
 - `src/tg/coleta/ftp.py`: `baixar(caminho_remoto) -> Path` em `dados/bruto/<conjunto>/`.
   - Não baixa de novo se já existe com o mesmo tamanho (`SIZE` do FTP).
   - Até 3 tentativas com espera crescente.
@@ -58,7 +58,7 @@
 
 ## Fase 1 — Tratamento
 
-### [ ] T1.1 Municípios, malha e população
+### [x] T1.1 Municípios, malha e população
 - `tratado/municipios.parquet`:
   - 645 linhas, com centroide calculado da malha (use `representative_point`);
   - região de saúde vinda do ST ou de TAB_CNES (`br_regsaud*.cnv`, conferir o arquivo
@@ -72,7 +72,7 @@
   - número de regiões de saúde registrado no CLAUDE.md (o documento diz 63; conferir);
   - população total de SP em 2022 dentro de ±1% do Censo 2022.
 
-### [ ] T1.2 Serviços
+### [x] T1.2 Serviços
 - `tratado/servicos.parquet` por ano: tipo 70 + Unidades de Acolhimento + hospitais com
   leito de saúde mental.
   - Códigos de UA e de leito: **descobrir e conferir** em TAB_CNES.
@@ -87,7 +87,7 @@
   - 100% dos serviços com coordenada e `origem_coord` preenchida;
   - teste garante que nenhum "CAPS ADULTO" é marcado como AD.
 
-### [ ] T1.3 Internações (SIH)
+### [x] T1.3 Internações (SIH)
 - Filtrar `DIAG_PRINC` F10–F19.
   - Confirmar no dicionário do RD o campo de AIH principal vs. continuação e usar só a
     principal.
@@ -97,11 +97,11 @@
     capítulo/categoria F10–F19, SP) com diferença < 2%;
   - registrar o número conferido e a data da consulta no CLAUDE.md.
 
-### [ ] T1.4 Óbitos (SIM)
+### [x] T1.4 Óbitos (SIM)
 - Causa básica (`CAUSABAS`) F10–F19 ⛔D4, por `CODMUNRES` × ano.
 - **Aceite:** conferência com o TabNet SIM com diferença < 2%.
 
-### [ ] T1.5 RAAS psicossocial (SIA/PS)
+### [x] T1.5 RAAS psicossocial (SIA/PS)
 - `raas_carga` por CNES × mês: pacientes únicos (por `CNS_PAC`, só em memória) e pacientes
   F1x.
 - `raas_fluxos` por `MUNPAC` × `CNES_EXEC` × ano.
@@ -111,7 +111,7 @@
     (1.627 / 178);
   - teste: colunas proibidas ausentes em `tratado/`.
 
-### [ ] T1.6 Matriz de distâncias
+### [x] T1.6 Matriz de distâncias
 - Haversine entre o centroide de cada município e cada serviço, num raio de até 200 km.
 - **Aceite:** distância Santana de Parnaíba → capital (centroides) entre 20 e 45 km, como
   teste de sanidade.

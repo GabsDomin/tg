@@ -22,9 +22,19 @@ antigas do CLAUDE.md onde houver conflito.
 | A6 | SIA/PS (RAAS psicossocial) traz `CNES_EXEC` × `MUNPAC` × `CIDPRI` × `TP_DROGA` × `SIT_RUA` | SIA PS dez/2024 | **Dá para observar fluxos reais** residência → serviço |
 | A7 | Só **1,2%** dos atendimentos em CAPS AD são de residentes de outro município (319 de 23.309 pacientes no mês) | SIA PS dez/2024 | Encaminhamento intermunicipal é **raro e concentrado** em poucos serviços regionais |
 | A8 | **1.627 residentes de 178 municípios sem CAPS AD** foram tratados por F10–F19 em algum CAPS no mês, sobretudo **CAPS I** (5% de todos os pacientes F1x) | SIA PS dez/2024 | "Sem CAPS AD" ≠ "sem cuidado AD"; afeta a definição de deserto (D1) |
-| A9 | Mediana de pacientes/mês: AD II ≈ 168, AD III ≈ 288 | SIA PS dez/2024 | Capacidade empírica por modalidade |
+| A9 | Mediana de pacientes/mês: AD (0619) ≈ 168, AD III ≈ 288 | SIA PS dez/2024 | Capacidade empírica por modalidade |
 | A10 | Todas as bases de 2019–2024 existem no FTP do DATASUS (SIH RD, SIA PS, SIM DO, CNES ST/HB/LT) | FTP | Coleta pelo FTP, não pela API |
 | A11 | `apidadosabertos.saude.gov.br` derruba a conexão a partir da rede usada | — | Não depender da API |
+| A12 | A oferta **cresceu**: CAPS AD habilitados 96 (2019) → 123 (2026-09); municípios com CAPS AD 66 → 83 | CNES HB, série dez/2019–2026 | A "cobertura" muda dentro do período; ICA precisa ser por ano, não um retrato |
+| A13 | **Quebra de regime nos óbitos F10–F19 em SP**: 1.015 (2019) → 1.749 (2020), +72%. Confere 0,0% com o TabNet. Brasil +32%, RJ +31%, RS +15%, **MG +0,6%**. Causa **não verificada** | SIM DO; TabNet | Óbitos viram sinal **secundário**; a demanda principal é internação |
+| A14 | **F17 (tabaco) = 21% dos óbitos F1x** em 2024 (285 de 1.379); álcool (F10) = 62% | SIM DO 2024 | Manter `cid3` nas tabelas; análise de sensibilidade sem F17 (D4) |
+| A15 | No SIH, **33% dos registros F1x são `IDENT=5` (longa permanência)**, AIH reemitida todo mês. Contar só `IDENT=1` reproduz o TabNet com −0,14% a −0,30% | SIH RD; dicionário `IDENT.CNV` | "Internação" = `IDENT 1`; longa permanência em coluna separada |
+| A16 | Série de internações F1x: 19.378 (2019), 15.389 (2020), 15.034 (2021), 17.262 (2022), 22.334 (2023), 24.786 (2024): queda pandêmica de ~21% e retomada acima do nível pré-pandemia | SIH RD | Anos 2020–21 são atípicos; testar robustez sem eles |
+| A17 | **Sem estimativa municipal de população para 2022 e 2023** (tabela 6579). 2022 = Censo (44,41 mi); 2023 interpolado. Descontinuidade 2021→2022: 46,65 mi → 44,41 mi (−4,8%) | SIDRA 6579, 4714 | Taxas de 2019–21 têm denominador superestimado; limitação a declarar |
+| A18 | População por idade só no Censo 2022. `pop_15mais` = total anual × proporção 15+ de 2022 (aproximação) | SIDRA 9514 | Declarar |
+| A19 | O conversor oficial do CNES lista **62 Regiões de Saúde** em SP; o documento do TG diz 63. O campo `REGSAUDE` do arquivo ST está **sujo** (290 valores livres), **não usar** | TAB_CNES `SP_regsaud.cnv`; ST | Usar o conversor. Confirmar o número 63 com o Prof. Ivan |
+| A20 | Distância mediana ao CAPS AD habilitado mais próximo: **28 km** (p90 63 km, máx. 164 km); todos os 645 municípios têm um a ≤ 200 km | haversine | O deserto em SP é mais de **capacidade** que de distância; raio de 60 km cobre ~90% |
+| A21 | Habilitação `0619` chama-se "CAPS ALCOOL E DROGAS", **sem o "II"**. Rotulada "AD"; chamá-la de AD II é presunção **a confirmar na portaria** | HABILITA.DBF | Usar o rótulo "AD" |
 
 **Riscos que A7 e A8 revelam sobre o desenho antigo:**
 - A **porta de referência** original ("o mais próximo que não está afogado") recomendaria
@@ -140,6 +150,10 @@ para cruzar com o IBGE.
 
 ### 4.3 Armadilhas conhecidas
 
+- `ST.REGSAUDE` é lixo (A19). Região de saúde vem de `SP_regsaud.cnv`.
+- `ST`/`HB` por competência: o campo `CMPT_FIM` vazio significa habilitação vigente.
+- SEXO no SIH: 1 = masculino, 2 ou 3 = feminino. No SIM: 1 e 2.
+- O TabNet derruba conexões em rajada: espaçar as consultas e repetir com pausa.
 - A regex `CAPS AD` casa com "CAPS ADULTO". Modalidade sai só de habilitação.
 - Habilitação vigente: `CMPT_FIM` vazio ou ≥ competência.
 - O CSV derivado sem aspas quebra em campos com `;`. Leia sempre o original.
@@ -156,6 +170,9 @@ para cruzar com o IBGE.
 ### 5.1 Demanda (necessidade estimada)
 
 - **D_int**: internações F10–F19 por residência, por 100 mil hab. 15+.
+- **Hierarquia dos sinais (A13, A15):** D_int é o sinal principal de demanda. D_obito é
+  **secundário**: tem quebra de regime em 2020 de origem desconhecida e é raro em municípios
+  pequenos. Não somar os dois num índice sem padronizar por ano.
 - **D_obito**: óbitos com causa básica F10–F19, por 100 mil. A lista de CIDs de óbito
   atribuível a álcool e drogas é mais ampla que F10–F19 (cirrose alcoólica K70,
   intoxicações X40–X45 etc.). **Decisão D4.** O padrão é **só F10–F19**, por coerência com
@@ -174,7 +191,7 @@ para cruzar com o IBGE.
 | O3 — efetiva | O1 + CAPS I/II/III com produção F1x observada | sensibilidade, mostra a cobertura oculta (A8) |
 
 Capacidade relativa por modalidade: razão das medianas de pacientes/mês em 2019–2022 (A9
-sugere AD III ≈ 1,7 × AD II). Isso é uma **norma empírica por modalidade**, não a carga do
+sugere AD III ≈ 1,7 × AD (0619)). Isso é uma **norma empírica por modalidade**, não a carga do
 CAPS individual. O peso vem de dado, não de suposição.
 
 O texto do TG mantém "apenas CAPS AD como equipamento de referência" (O1). O2 e O3 entram
