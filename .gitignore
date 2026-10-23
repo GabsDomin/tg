@@ -17,3 +17,6 @@ dados/cache/
 .claude/
 *.egg-info/
 logs_*.txt
+
+# rascunho do texto do TG: nao publicar antes da entrega (pode ser repositorio publico)
+docs/rascunho/

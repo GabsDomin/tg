@@ -120,7 +120,15 @@ sumário, 1 Introdução (1.1–1.6), 2 Referencial Teórico (2.1–2.5), 3 Meto
   0,3 + mesma região 0,5 + abertura 0,2; a folga aparece só como informação. **Isso muda a
   narrativa do TG**: a contribuição passa a ser a avaliação honesta, a tipologia e a
   caracterização, não "o buscador que sabe quem está lotado". Levar ao Prof. Ivan.
-- ⏳ Próxima: planejamento (porta 1) com recuperação textual e consultas escritas pelo grupo
+- 🚨 **PRAZO (descoberto em 23/10/2026):** o Termo T3 assinado (03/09/2026, em Downloads) fixa a
+  **entrega da versão final em 16/10/2026** ("a não entrega reprova o trabalho"). O documento de
+  15/10 (`TG_CAPS 1.docx`) tem os cap. 4 e 5 vazios. **Confirmar com o Prof. Ivan** se a data era do
+  TG final ou de uma etapa e qual é a data vigente. O Termo T3 também **não cita motor de busca** (D0).
+- ✅ **Rascunho dos cap. 4 e 5 pronto**: `docs/rascunho/TG_CAPS_rascunho_cap4_cap5.docx` (+ PDF), feito em
+  CÓPIA do documento entregue (original intacto), mesmo padrão de formatação, sumário atualizado, 7
+  tabelas e 3 figuras, trechos "[A CONFIRMAR]" em amarelo. Os cap. 1–3, resumo e abstract **não** foram
+  alterados: ver `docs/ajustes_capitulos_1_a_3.md`.
+- ⏳ Próxima: revisão do rascunho pelo grupo e pelo orientador; planejamento (porta 1) com recuperação textual e consultas escritas pelo grupo
   (T3.1–T3.3, T4.1); depois os capítulos 4 e 5 do documento (T10).
 - (antigo) **T2.4** (K-Means) e **T2.5** (caracterização). Não começar a Fase 3 (motor de
   busca) antes de D0 (a exigência existe? qual a data?).
