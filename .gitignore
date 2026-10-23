@@ -1,0 +1,18 @@
+# ambiente
+.venv/
+__pycache__/
+*.pyc
+
+# dados brutos: grandes e, no caso do SIA/PS e SIH, microdado individual (CNS_PAC).
+# NUNCA versionar. Sao reproduziveis pelo pipeline de coleta.
+dados/bruto/
+dados/tratado/
+dados/cache/
+
+# o que vai para a pagina publicada e gerado em dados/publicar/ (somente agregados)
+!dados/publicar/
+
+.streamlit/secrets.toml
+.sf/
+.claude/
+*.egg-info/

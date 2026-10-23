@@ -1,0 +1,267 @@
+# CLAUDE.md — TG Desertos de Cuidado em Álcool e Outras Drogas
+
+Este arquivo é carregado automaticamente em toda sessão do Claude Code neste projeto.
+Mantenha-o atualizado conforme o trabalho avança: ele é a memória do projeto.
+
+**Mapa dos documentos:**
+- este arquivo: regras + estado atual
+- [docs/ARQUITETURA.md](docs/ARQUITETURA.md): o que construir e por quê, com achados, desenho e decisões pendentes
+- [docs/PLANO_EXECUCAO.md](docs/PLANO_EXECUCAO.md): tarefas em ordem, com critérios de aceite
+
+Em caso de conflito, **os achados empíricos da ARQUITETURA §1 prevalecem** sobre premissas
+antigas.
+
+---
+
+## COMO QUERO QUE VOCÊ SE COMPORTE
+
+Seja criticamente honesto. Antes de propor qualquer coisa, questione a própria proposta,
+procure o furo, valide com busca na web quando a afirmação for verificável, e me diga
+quando algo que eu quero fazer já existe ou não se sustenta. Não invente referência
+bibliográfica nenhuma — se não puder confirmar autor, ano e veículo, diga que não
+confirmou. Não me elogie por reflexo. Se eu estiver indo para um caminho ruim, fale.
+
+---
+
+## QUEM SOU E ONDE ESTOU
+
+Sou aluno do Curso Superior de Tecnologia em **Ciência de Dados** na **FATEC Santana de
+Parnaíba** (Centro Paula Souza), São Paulo. Estou fazendo meu **TG** (Trabalho de
+Graduação), entrega prevista para **2026** (data exata a confirmar — decisão D0).
+
+**Grupo de três integrantes:**
+- Luís Davi Gomes de Santana
+- Gabriel Domingues Fernandes
+- Eloi Pires de Souza Ibiapino Filho
+
+**Orientador:** Professor Ivan Souza (direção ainda aberta, não impôs tema).
+
+**Meu perfil técnico:** sou "vibe coder", entendo Python mas não domino a fundo. Prazo
+apertado.
+
+---
+
+## O PROJETO (estado entregue ao professor)
+
+**Tema:**
+> Desertos de cuidado em álcool e outras drogas: análise do gap entre demanda assistencial
+> e cobertura de CAPS AD nos municípios do estado de São Paulo por meio de Ciência de Dados
+
+**Pergunta de pesquisa:**
+> Quais municípios do estado de São Paulo apresentam maior desproporção entre a demanda
+> assistencial por transtornos decorrentes do uso de álcool e outras drogas e a oferta de
+> Centros de Atenção Psicossocial Álcool e Drogas (CAPS AD), e quais características
+> socioeconômicas caracterizam essas regiões?
+
+**Objetivo geral:** identificar e mapear, por técnicas de Ciência de Dados, os municípios
+paulistas com maior desproporção entre demanda assistencial por transtornos relacionados a
+álcool/drogas e oferta de CAPS AD.
+
+**Objetivos específicos no documento entregue (6):**
+1. Coletar, tratar e integrar DATASUS, CNES e IBGE em dataset municipal unificado
+2. Caracterizar o perfil da demanda por sexo, faixa etária e distribuição geográfica
+3. Construir Índice de Cobertura Assistencial (ICA) com **exclusivamente** oferta,
+   população e demanda
+4. Aplicar K-Means sobre indicadores assistenciais, **reservando** as variáveis
+   socioeconômicas para caracterização posterior
+5. Analisar associação entre indicadores socioeconômicos e a classificação obtida
+6. Desenvolver dashboard interativo com visualização geográfica → **será reescrito**
+   (motor de busca) + **objetivo 7** novo (avaliação quantitativa)
+
+**Recorte:** 645 municípios de SP; período 2019–2024; CID-10 F10–F19; CAPS AD como
+equipamento de referência (camadas de sensibilidade em discussão, D1).
+
+**Estrutura do documento entregue (19 páginas):** capa, folha de rosto, resumo, abstract,
+sumário, 1 Introdução (1.1–1.6), 2 Referencial Teórico (2.1–2.5), 3 Metodologia
+(3.1–3.8), 4 Análises e Resultados (vazio), 5 Considerações Finais (vazio), Referências.
+
+---
+
+## ESTADO ATUAL (atualize a cada tarefa concluída)
+
+**Última atualização:** 23/10/2026
+
+- ✅ Diagnóstico de viabilidade executado com dado estruturado. Ver ARQUITETURA §1.
+  O `diagnostico_viabilidade.py` original foi **abandonado**: dependia da API inacessível e
+  inferia modalidade por nome com bugs.
+- ✅ Ambiente: `.venv` (Python 3.12, via `uv`), `requirements.txt`.
+- ✅ Dados de diagnóstico em `dados/bruto/`, saída em `dados/tratado/caps_sp_202609.csv`.
+- ✅ Arquitetura e plano escritos em `docs/`.
+- ⏳ Próxima tarefa: **T0.1** do PLANO_EXECUCAO.
+- ⛔ Pendente de humano: D0–D7 (ARQUITETURA §10). Prioridade: **D0** (exigência escrita
+  e data de entrega) e **D3** (ICA espacial, alinhar com o Prof. Ivan).
+
+### Números-chave (CNES 2026-09; SIA/PS dez/2024)
+- 649 CAPS em 293 municípios.
+- **123 CAPS AD habilitados** (84 AD, 39 AD III, 0 AD IV) em **83 municípios**; 34 na
+  capital.
+- 125 CAPS sem nenhuma habilitação; 16 se chamam "AD", entre eles o CAPS AD IV Redenção.
+- Coordenadas: 123/123 CAPS AD dentro do município declarado.
+- Só 1,2% dos atendimentos em CAPS AD são de residentes de outro município.
+- 1.627 residentes de 178 municípios sem CAPS AD foram tratados por F10–F19 em algum CAPS
+  (sobretudo CAPS I).
+
+---
+
+## O MOTOR DE BUSCA (exigência do curso)
+
+O curso exige um motor de busca. **Ainda não está confirmado** se a exigência está escrita
+na rubrica ou plano de ensino (D0). Desenho completo na ARQUITETURA §6–7. Em resumo:
+
+- **Duas portas:**
+  - **planejamento:** municípios ranqueados por necessidade, com consulta em linguagem
+    natural;
+  - **referência:** dado um município, serviços *acessíveis de fato*, ranqueados por
+    proximidade, região de saúde, abertura observada, adequação de modalidade e folga.
+- **Mudança em relação ao desenho anterior:** os fluxos reais (SIA/PS) mostraram que o
+  encaminhamento intermunicipal é raro. Ranquear "o mais próximo não lotado" sem considerar
+  pactuação recomendaria serviços inacessíveis.
+- **Avaliação principal da referência:** fluxos observados em 2023–24, como gabarito
+  automático e sem circularidade (features de 2019–22). Isso **substitui** o painel de
+  especialista como camada principal; o especialista vira opcional (D5).
+- **Métricas:** P@k, MRR, NDCG@k, com baselines (distância, população, persistência) e
+  ablação.
+
+---
+
+## BASES DE DADOS — VERIFICADAS
+
+| Camada | Base | Acesso que funciona |
+|---|---|---|
+| Demanda | SIH/SUS RD (internações F10–F19, residência) | FTP DATASUS `SIHSUS/200801_/Dados/RDSPaamm.dbc`, 2019–2024 ok |
+| Demanda | SIM DO (óbitos) | FTP `SIM/CID10/DORES/DOSPaaaa.dbc`, 2019–2024 ok |
+| Atendimento realizado | SIA/SUS PS (RAAS psicossocial) | FTP `SIASUS/200801_/Dados/PSSPaamm.dbc`. Tem `CNES_EXEC`, `MUNPAC`, `CIDPRI`, `TP_DROGA`, `SIT_RUA`. **Não é medida de demanda** |
+| Oferta | CNES ST/HB/LT | FTP `CNES/200508_/Dados/{ST,HB,LT}/`, até 2026-09 |
+| Oferta | Códigos de habilitação | `TAB_CNES.zip` → `DBF/HABILITA.DBF`: 0619 AD, 0635 AD III, 0637 AD IV, 0616 I, 0617 II, 0618 III, 0620 i |
+| Coordenadas | OpenDataSUS `cnes_estabelecimentos.zip` (S3, jun/2025) | tem `NU_LATITUDE`/`NU_LONGITUDE`, validadas contra a malha |
+| Contexto | Censo 2022, malhas (API v3) | IBGE ok |
+| Contexto | PNS 2019 | **só nível estadual — não serve para análise municipal** |
+
+**Não funciona daqui:** `apidadosabertos.saude.gov.br` (conexão resetada). O portal
+OpenDataSUS redireciona para `dadosabertos.saude.gov.br`.
+
+**Correção de premissa antiga:** o CNES (extração OpenDataSUS) **traz coordenadas**. Não é
+preciso geocodificar, nem usar o dataset do Kaggle. A limitação a declarar é outra:
+distância haversine, não por estrada, e 17 CAPS recentes sem coordenada no arquivo de
+jun/2025.
+
+---
+
+## DECISÕES JÁ TOMADAS E POR QUÊ (não reabrir sem motivo)
+
+**Por que álcool e drogas e não depressão.** O CAPS AD atende exclusivamente esse público,
+então "demanda por AD" × "oferta de CAPS AD" é uma razão que faz sentido matemático. No
+CAPS adulto, o denominador mistura depressão, ansiedade, bipolaridade e esquizofrenia.
+Além disso F10–F19 gera muito mais internação no SIH que F32/F33, e depressão + PNS + ML
+já foi feito.
+
+**Por que ansiedade foi descartada.** Quase não gera internação nem óbito e frequentemente
+nem chega ao CAPS. É a condição mais difícil de rastrear em dados administrativos do SUS.
+
+**Por que a PNS não é fonte primária.** Só tem representatividade para grandes regiões,
+UFs, capitais e RMs.
+
+**Por que a vulnerabilidade não entra no ICA.** Evita circularidade: o índice mede
+adequação oferta/demanda; a vulnerabilidade é usada só na caracterização dos clusters.
+
+**Por que o gabarito normativo não pode ser a avaliação principal.** População é insumo do
+ICA; a baseline "ordenar por população" iria bem demais contra ele.
+
+**Por que RAAS/PS não é demanda (23/10/2026).** A produção existe onde há serviço. Usá-la
+como demanda faria a oferta explicar a demanda. A demanda vem de SIH + SIM, por residência.
+
+**Por que corte temporal 2019–22 / 2023–24 no motor (23/10/2026).** É o que impede que o
+gabarito seja construído com os mesmos dados que o ranking.
+
+**Por que modalidade sai de habilitação (23/10/2026).** O nome fantasia omite a modalidade
+em mais da metade dos CAPS AD, e a regex casa "CAPS ADULTO".
+
+---
+
+## O QUE JÁ EXISTE LÁ FORA (verificado — não repetir)
+
+- **Mapa interativo da RAPS do Ministério da Saúde** (2020), com 3.164 serviços
+- **mapasaudemental.com.br**
+- **Guia privado** com 4.765 serviços e filtro por CEP/estado/cidade/tipo
+- **Busca Saúde CAPS do DF** (CEP → unidade de referência)
+- **Miliauskas et al. (2019)**, Ciência & Saúde Coletiva, v.24, n.5, p.1935-1944 —
+  cobertura de CAPS × internações psiquiátricas nas RMs do RJ e SP
+
+Todos esses ranqueiam por proximidade. O espaço do projeto: acessibilidade espacial com
+demanda, pressão assistencial, fluxos reais e avaliação medida. Miliauskas é fundamentação:
+o escopo aqui é estadual, o método é clusterização + recuperação, e o produto é índice +
+sistema.
+
+---
+
+## RISCOS QUE EU JÁ CONHEÇO
+
+- **Escopo/prazo:** linhas de corte na ARQUITETURA §11. Nunca cortar a porta de referência
+  nem a avaliação.
+- **Corpus pequeno:** cerca de 1.500 documentos (municípios, regiões, serviços). A defesa é
+  a função de ranqueamento + avaliação. Não inflar com UBS.
+- **Granularidade:** 562 de 645 municípios sem CAPS AD. O ICA espacial (E2SFCA) e a Região
+  de Saúde tratam isso.
+- **Municípios pequenos:** suavização Bayesiana empírica + agregação plurianual.
+- **Residência vs. internação:** usar residência para demanda.
+- **Ética/LGPD:**
+  - página voltada a gestão, com aviso e CVV 188 / SAMU 192;
+  - só agregados publicados, com supressão <5;
+  - `CNS_PAC` nunca persistido;
+  - a seção 3.8 invoca a Resolução CNS 510/2016 (dispensa de CEP para dados públicos
+    agregados).
+
+---
+
+## REFERÊNCIAS JÁ VALIDADAS NO DOCUMENTO
+
+Lei 10.216/2001 · Portaria GM/MS 336/2002 · Portaria GM/MS 3.088/2011 · Resolução CNS
+510/2016 · Portaria de Consolidação 3/2017 · Portaria SAS/MS 544/2018 (cria CAPS AD IV no
+CNES) · CNES · CAPS/MS · DATASUS TABNET · HAIR JUNIOR et al. (2009) · IBGE Censo 2022 ·
+IBGE Malhas · IBGE PNS 2019 · JESUS; ASSIS (2010) · MACQUEEN (1967) · MILIAUSKAS et al.
+(2019) · PEREIRA et al. (2022) · WHO CID-10 (2019)
+
+**A confirmar antes de usar:**
+- edição do Hair Junior;
+- limiares populacionais da Portaria 336/2002;
+- Manning, Raghavan e Schütze (2008) para a seção 2.6;
+- Luo e Wang (2003) — 2SFCA;
+- Luo e Qi (2009) — E2SFCA;
+- referência para RRF (Cormack et al., 2009);
+- referência para NDCG (Järvelin e Kekäläinen, 2002);
+- se a Portaria 3.088/2011 atribui ao CAPS I o atendimento a usuários de álcool e drogas.
+
+---
+
+## CONVENÇÕES DESTE REPOSITÓRIO
+
+**Stack:** Python 3.12 em `.venv` (criado com `uv`).
+- pandas + `pyreaddbc`/`dbfread` para `.dbc`;
+- geopandas;
+- scikit-learn;
+- `rank_bm25` + `sentence-transformers` para busca;
+- plotly/folium;
+- streamlit.
+
+Rodar: `.venv\Scripts\python.exe -I <script>`, com `PYTHONIOENCODING=utf-8`.
+
+**Reprodutibilidade é requisito do TG.** Tudo que altera dado tem que estar em script.
+
+**Dados:**
+- `dados/bruto/` é imutável e fora do git;
+- `dados/tratado/` é gerado por script e fora do git;
+- `dados/publicar/` tem só agregados com supressão e é o único que vai para a página.
+
+**Ao escrever no documento .docx**, mantenha o padrão existente:
+- estilo `Heading2` nos títulos de subseção;
+- corpo em Arial 12pt, entrelinha 1,5, recuo de primeira linha de 1,25 cm, justificado;
+- referências ABNT, sem recuo e com espaçamento simples;
+- valide o XML após editar.
+
+**Nunca invente referência bibliográfica.** Se não puder confirmar autor, ano e veículo,
+diga que não confirmou.
+
+**Antes de citar um limiar normativo**, confirme no texto da portaria.
+
+**Antes de usar um código de domínio** (habilitação, leito, CID, tabela SIDRA), confira na
+tabela oficial e registre a fonte no `config.yaml`.

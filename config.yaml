@@ -1,0 +1,49 @@
+# Configuração central do TG. Todo parâmetro de método mora aqui, não no código.
+# Itens marcados D# dependem de decisão humana (docs/ARQUITETURA.md §10).
+
+uf: SP
+cod_uf: 35
+
+anos_construcao: [2019, 2020, 2021, 2022]   # features, índices, pesos
+anos_avaliacao: [2023, 2024]                # gabaritos; nunca usados para construir ranking
+competencia_cnes_atual: "202609"
+
+cid_demanda: F10-F19
+
+ftp:
+  base: ftp://ftp.datasus.gov.br/dissemin/publicos
+  cnes: CNES/200508_/Dados
+  cnes_auxiliar: CNES/200508_/Auxiliar
+  sih: SIHSUS/200801_/Dados
+  sia: SIASUS/200801_/Dados
+  sim: SIM/CID10/DORES
+
+# Competências de CNES usadas para a série de oferta: dezembro de cada ano + a atual.
+competencias_cnes: ["201912", "202012", "202112", "202212", "202312", "202412", "202609"]
+
+# Códigos conferidos em TAB_CNES.zip -> DBF/HABILITA.DBF (out/2026)
+habilitacoes:
+  fonte: TAB_CNES/DBF/HABILITA.DBF
+  caps:
+    "0616": CAPS I
+    "0617": CAPS II
+    "0618": CAPS III
+    "0619": CAPS AD
+    "0620": CAPS i
+    "0635": CAPS AD III
+    "0637": CAPS AD IV
+  ad: ["0619", "0635", "0637"]
+
+oferta_camada: O1   # D1, D2: O1 estrita (padrão), O2 ampliada, O3 efetiva
+
+# Valores INICIAIS; pesos e faixas são placeholders até haver decaimento justificado
+# em literatura confirmada. Sensibilidade obrigatória (T2.3).
+e2sfca:
+  raio_km: 60
+  faixas_km: [15, 30, 60]
+  pesos: [1.0, 0.68, 0.22]
+  raios_sensibilidade_km: [30, 60, 90]
+
+supressao_min: 5
+
+colunas_proibidas_publicar: [CNS_PAC, DTNASC, N_AIH, CPF, CNS]
