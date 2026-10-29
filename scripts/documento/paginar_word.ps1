@@ -1,4 +1,4 @@
-# Abre uma COPIA do .docx no Word (somente leitura), le a pagina de cada titulo e exporta PDF.
+﻿# Abre uma COPIA do .docx no Word (somente leitura), le a pagina de cada titulo e exporta PDF.
 # Uso: powershell -File paginar_word.ps1 <docx> <saida.json> <saida.pdf>
 param([string]$Docx, [string]$Json, [string]$Pdf)
 $ErrorActionPreference = "Stop"

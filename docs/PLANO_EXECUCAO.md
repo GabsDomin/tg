@@ -144,7 +144,7 @@
   - validação externa: Spearman entre `A_m` (2019–22) e internações 2023–24 (ARQUITETURA
     §5.3), com resultado registrado, seja qual for.
 
-### [ ] T2.4 K-Means
+### [x] T2.4 K-Means (k = 5; ver resultados_clusters.md)
 - Variáveis conforme ARQUITETURA §5.4. `k` de 3 a 8, avaliado por silhueta, cotovelo e
   estabilidade (ARI em 100 bootstraps).
 - **Aceite:**
@@ -152,7 +152,7 @@
   - `k` escolhido com justificativa escrita em `docs/resultados_clusters.md`;
   - ARI médio reportado.
 
-### [ ] T2.5 Caracterização socioeconômica
+### [x] T2.5 Caracterização socioeconômica (ver resultados_clusters.md)
 - Variáveis do Censo 2022: **descobrir o que está disponível no SIDRA em nível municipal e
   registrar as tabelas**.
 - Kruskal-Wallis + Dunn/Holm + ε².
@@ -162,7 +162,7 @@
 
 ## Fase 3 — Motor de busca
 
-### [ ] T3.1 Corpus
+### [x] T3.1 Corpus (822 documentos, em web/js/busca.js)
 - `busca/corpus.py` gera os documentos por template (ARQUITETURA §6.2), com id estável e
   metadados estruturados.
 - **Aceite:**
@@ -170,20 +170,20 @@
   - todo documento tem `colecao`, `id`, `texto`, `atributos`;
   - 5 exemplos impressos no relatório da tarefa.
 
-### [ ] T3.2 Interpretação de consultas
+### [x] T3.2 Interpretação de consultas (regras + dicionário, em JS)
 - Gazetteer com nomes de municípios, regiões e DRS, normalizando acentos, caixa e "SP".
 - Regras para restrições e intenção.
 - **Aceite:** conjunto de 30 consultas de teste com restrição esperada, e acurácia de
   extração ≥ 90%. Escreva as consultas de teste **antes** das regras.
 
-### [ ] T3.3 Recuperação
+### [x] T3.3 Recuperação (SÓ BM25; busca densa e RRF NÃO foram implementados)
 - BM25 (`rank_bm25`) e denso (`sentence-transformers`; modelo registrado no
   `config.yaml`), fundidos por RRF (k = 60).
 - **Aceite:**
   - cada recuperador é chamável isoladamente, o que a ablação exige;
   - latência < 1 s por consulta numa CPU comum.
 
-### [ ] T3.4 Ranqueamento e explicação
+### [x] T3.4 Ranqueamento e explicação (folga e adequação com peso 0)
 - Funções das duas portas (ARQUITETURA §6.4 e §6.5), com componentes normalizados e pesos
   vindos do `config.yaml`.
 - `explicacao.py` devolve a contribuição de cada componente.
@@ -196,7 +196,7 @@
 
 ## Fase 4 — Avaliação
 
-### [ ] T4.1 Gabaritos
+### [x] T4.1 Gabaritos (referência: fluxos 2023-24; planejamento: 58 consultas do assistente, o grupo deve substituir)
 - Referência: gerado automaticamente de `raas_fluxos` 2023–24, com as faixas de relevância
   da ARQUITETURA §7.1.
 - Planejamento: `avaliacao/consultas_planejamento.yaml` com 40–60 consultas. O **grupo**
@@ -205,7 +205,7 @@
 - **Aceite:** número de consultas por porta reportado; nenhuma consulta de planejamento
   usada para calibrar pesos (divisão desenvolvimento/teste registrada).
 
-### [ ] T4.2 Métricas, baselines, ablação
+### [x] T4.2 Métricas, baselines, ablação (resultado negativo reportado; ver resultados_*.md)
 - P@k, MRR, NDCG@k implementados e testados contra exemplos calculados à mão.
   `sklearn.metrics.ndcg_score` serve como conferência.
 - Baselines e ablação conforme ARQUITETURA §7.
@@ -219,7 +219,7 @@
 
 ## Fase 5 — Página publicada
 
-### [ ] T5.1 Exportação
+### [x] T5.1 Exportação (web/data/*.json, só agregados)
 - `python pipeline.py publicar` gera `dados/publicar/`: agregados com supressão `<5`,
   índice BM25 serializado, embeddings `.npy` e métricas de avaliação.
 - **Aceite:**
@@ -227,14 +227,14 @@
   - teste de supressão passa;
   - pasta com menos de 100 MB.
 
-### [ ] T5.2 App Streamlit
+### [x] T5.2 App (SITE ESTÁTICO em web/, não Streamlit: a Vercel não hospeda Streamlit)
 - Seções da ARQUITETURA §8.2, aviso ético fixo e data das competências visível.
 - **Aceite:**
   - `streamlit run app/streamlit_app.py` abre local;
   - as 3 consultas de demonstração retornam resultado com explicação;
   - a app funciona sem `dados/bruto/` e sem `dados/tratado/`.
 
-### [ ] T5.3 Deploy ⛔D7
+### [x] T5.3 Deploy (https://tg-red.vercel.app; repositório público, D7 decidido na prática)
 - Conferir os limites atuais da hospedagem escolhida.
   - Se o modelo denso não couber, publicar com BM25 + interpretação e registrar no
     CLAUDE.md.
@@ -245,7 +245,7 @@
 
 ## Fase 6 — Documento (humano no comando)
 
-### [ ] T10 Seções novas do .docx
+### [~] T10 Seções novas do .docx (rascunho dos cap. 4 e 5 pronto em docs/rascunho/; cap. 1-3 pendentes)
 O agente **rascunha**, mas não substitui o texto, nas seguintes partes:
 - resumo/abstract;
 - objetivos 6 e 7;

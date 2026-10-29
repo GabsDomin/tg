@@ -79,7 +79,14 @@ sumário, 1 Introdução (1.1–1.6), 2 Referencial Teórico (2.1–2.5), 3 Meto
 
 ## ESTADO ATUAL (atualize a cada tarefa concluída)
 
-**Última atualização:** 23/10/2026
+**Última atualização:** 29/10/2026 (auditoria completa; ver o item "AUDITORIA" abaixo)
+
+> **Leitura rápida:** o projeto tem (1) pipeline de dados e análises em Python (`pipeline.py`,
+> `src/tg/`), (2) site estático com **motor de busca em JavaScript** em `web/` (no ar em
+> https://tg-red.vercel.app), (3) rascunho dos cap. 4 e 5 do TG em `docs/rascunho/` (local, fora do
+> git) e (4) documentação em `docs/`. Os itens abaixo estão em ordem cronológica; **o que vale é o
+> estado mais recente de cada assunto**, e as seções de desenho da ARQUITETURA que divergem do
+> implementado estão sinalizadas no topo dela.
 
 - ✅ Diagnóstico de viabilidade executado com dado estruturado. Ver ARQUITETURA §1.
   O `diagnostico_viabilidade.py` original foi **abandonado**: dependia da API inacessível e
@@ -87,31 +94,28 @@ sumário, 1 Introdução (1.1–1.6), 2 Referencial Teórico (2.1–2.5), 3 Meto
 - ✅ Ambiente: `.venv` (Python 3.12, via `uv`), `requirements.txt`.
 - ✅ Dados de diagnóstico em `dados/bruto/`, saída em `dados/tratado/caps_sp_202609.csv`.
 - ✅ Arquitetura e plano escritos em `docs/`.
-- ✅ **Fase 0 e Fase 1 concluídas (T0.1–T1.6)** em 23/10/2026. 33 testes passando
-  (`.venv\Scripts\python.exe -m pytest -q`). Tabelas em `dados/tratado/`:
+- ✅ **Fase 0 e Fase 1 concluídas (T0.1–T1.6)** em 23/10/2026. Testes: `.venv\Scripts\python.exe
+  -m pytest -q` (75 ao final, incluindo o do motor em JS). Tabelas em `dados/tratado/`:
   `municipios`, `populacao`, `servicos`, `internacoes`, `internacoes_fluxo`, `obitos`,
   `raas_carga`, `raas_fluxos`, `distancias`. Reconstruir: `python pipeline.py coleta
   territorio servicos internacoes obitos raas distancias`.
 - ✅ Internações e óbitos conferidos contra o **TabNet oficial** (internações −0,14% a
   −0,30%; óbitos 0,0%). Scripts em `scripts/exploracao/conferir_tabnet_*.py`.
 - ✅ **T2.1 concluída**; **T2.2 e T2.3 implementadas de forma provisória** (`[~]` no plano:
-  rodam com a recomendação O1 + E2SFCA, mas D1/D2/D3 ainda são do grupo). 47 testes.
-  Reconstruir: `python pipeline.py demanda acessibilidade`.
+  rodam com a recomendação O1 + E2SFCA, mas D1/D2/D3 ainda são do grupo). Reconstruir: `python pipeline.py demanda acessibilidade`.
 - ⚠️ **Resultado que muda a conversa com o Prof. Ivan (ARQUITETURA A23):** o E2SFCA tem
   validação externa fraca (ρ parcial ≈ −0,10) e **não prevê melhor que a oferta pura**.
   O plano original tinha um viés mecânico (persistência da demanda, ρ = 0,84), já corrigido
   com correlação parcial. Defender o E2SFCA como ferramenta conceitual (acesso entre
   fronteiras + `R_j` para a porta de referência), não como índice validado.
 - ⚠️ A22: a "demanda" por internação reflete polos hospitalares (ex.: Pinhal, 18× a média).
-- ✅ **Site estático pronto em `web/`** (mapa + busca Planejamento/Referência + Sobre),
-  para a **Vercel** (Root Directory = `web`). Guia em `docs/PUBLICACAO.md`. **Mudança de
-  arquitetura:** a Vercel não hospeda Streamlit, então o site é HTML/JS lendo `web/data/*.json`
-  (gerado por `python pipeline.py publicar`). Rotulado "Versão preliminar"; os pesos de
-  referência (`web/data/meta.json`) NÃO foram avaliados. **No ar em https://tg-red.vercel.app**
-  (publicado em 23/10/2026; código em github.com/GabsDomin/tg). Atualizar:
-  `npx vercel deploy --prod --yes` dentro de `web/` (ver docs/PUBLICACAO.md). O motor de busca real, com recuperação semântica e avaliação (Fases
-  3–4), ainda não existe: a busca atual é por nome + necessidade, em JS.
-- ✅ **T2.4, T2.5, T4.1 e T4.2 da porta de referência concluídas** (73 testes). Ver
+- ✅ **Site estático em `web/`**, para a **Vercel** (Root Directory = `web`). Guia em
+  `docs/PUBLICACAO.md`. **Mudança de arquitetura:** a Vercel não hospeda Streamlit, então o site é
+  HTML/JS lendo `web/data/*.json` (gerado por `python pipeline.py publicar`). Rotulado "Versão
+  preliminar". **No ar em https://tg-red.vercel.app** (código em github.com/GabsDomin/tg).
+  Atualizar: `npx vercel deploy --prod --yes` dentro de `web/`. (Nas primeiras versões a busca era só
+  por nome; o motor de busca real foi implementado depois, ver abaixo.)
+- ✅ **T2.4, T2.5, T4.1 e T4.2 da porta de referência concluídas.** Ver
   `docs/resultados_clusters.md` e `docs/resultados_avaliacao.md`.
 - ⚠️ **RESULTADO NEGATIVO CENTRAL (ARQUITETURA A26):** na avaliação contra fluxos reais
   2023–24, o sistema de referência **não supera "só distância"** de forma significativa
@@ -146,16 +150,29 @@ sumário, 1 Introdução (1.1–1.6), 2 Referencial Teórico (2.1–2.5), 3 Meto
   CÓPIA do documento entregue (original intacto), mesmo padrão de formatação, sumário atualizado, 7
   tabelas e 3 figuras, trechos "[A CONFIRMAR]" em amarelo. Os cap. 1–3, resumo e abstract **não** foram
   alterados: ver `docs/ajustes_capitulos_1_a_3.md`.
-- ⏳ Próxima: revisão do rascunho pelo grupo e pelo orientador; planejamento (porta 1) com recuperação textual e consultas escritas pelo grupo
-  (T3.1–T3.3, T4.1); depois os capítulos 4 e 5 do documento (T10).
-- (antigo) **T2.4** (K-Means) e **T2.5** (caracterização). Não começar a Fase 3 (motor de
-  busca) antes de D0 (a exigência existe? qual a data?).
+- ⏳ **Próximos passos (em ordem):** (1) confirmar a data de entrega com o Prof. Ivan (D0, acima);
+  (2) revisão do rascunho dos cap. 4 e 5 pelo grupo e pelo orientador; (3) o grupo escrever as
+  consultas reais de avaliação do motor (`avaliacao/LEIAME.md`); (4) revisar cap. 1–3, resumo e
+  abstract (`docs/ajustes_capitulos_1_a_3.md`); (5) confirmar as referências marcadas
+  "[A CONFIRMAR]". **Não está implementado:** busca semântica por vetores (trabalho futuro).
 - ⛔ Pendente de humano: D0–D7 (ARQUITETURA §10). Prioridade: **D0** (exigência escrita
   e data de entrega) e **D3** (ICA espacial, alinhar com o Prof. Ivan).
-- ⚠️ Achados novos que o grupo precisa conhecer (ARQUITETURA A12–A21): óbitos F1x de SP
-  têm quebra de +72% em 2020 (causa desconhecida); população sem estimativa 2022/2023;
-  conversor do CNES lista 62 regiões de saúde (documento diz 63); a oferta de CAPS AD
+- ⚠️ Achados que o grupo precisa conhecer (ARQUITETURA A12–A27): óbitos F1x de SP têm quebra de
+  +72% em 2020 (causa desconhecida); população sem estimativa 2022/2023; o conversor do CNES lista
+  **62** regiões de saúde (número que acompanha a atualização do desenho regional pela CIB/SP em
+  2024; documentos anteriores citam 63; **confirmar o número da deliberação**); a oferta de CAPS AD
   cresceu 96 → 123 entre 2019 e 2026.
+- 🔎 **AUDITORIA COMPLETA (29/10/2026):** (a) 18 testes do motor + fuzz de 4.020 entradas (0
+  exceções, sem ReDoS, pior caso 273 ms); (b) avaliação da busca reproduz bit a bit o publicado;
+  (c) site no ar **idêntico** ao repositório (SHA-256 de 13 arquivos) e 70/70 no e2e; (d) histórico
+  do Git sem dados, segredos ou RAs; (e) `scripts/exploracao/auditar_numeros.mjs` confere **69
+  números do texto contra os dados** (0 falhas; detecta erro plantado). Correções feitas: texto do
+  cap. 4.2 (menores taxas regionais sem a condição ">50 internações"; frase "62 e não 63") e
+  documentação obsoleta (este arquivo, ARQUITETURA, PLANO). **Limitação da auditoria:** a política
+  de Controle de Aplicativo do Windows passou a **bloquear o `python.exe` do `.venv`**; não foi
+  possível rodar `pytest` nem refazer o pipeline do zero nesta sessão (não contornado de propósito).
+  Os números de SIH/SIM (114.183 internações etc.) estão conferidos com o TabNet, mas não foram
+  recalculados nesta auditoria.
 
 ### Números-chave (CNES 2026-09; SIA/PS dez/2024)
 - 649 CAPS em 293 municípios.
@@ -172,13 +189,16 @@ sumário, 1 Introdução (1.1–1.6), 2 Referencial Teórico (2.1–2.5), 3 Meto
 ## O MOTOR DE BUSCA (exigência do curso)
 
 O curso exige um motor de busca. **Ainda não está confirmado** se a exigência está escrita
-na rubrica ou plano de ensino (D0). Desenho completo na ARQUITETURA §6–7. Em resumo:
+na rubrica ou plano de ensino (D0). **Implementado** em `web/js/busca.js` (BM25 + interpretação de
+linguagem natural + ranqueamento explicável; 822 documentos; sem IA generativa e sem vetores);
+resultados em `docs/resultados_busca.md`. Em resumo:
 
 - **Duas portas:**
-  - **planejamento:** municípios ranqueados por necessidade, com consulta em linguagem
-    natural;
-  - **referência:** dado um município, serviços *acessíveis de fato*, ranqueados por
-    proximidade, região de saúde, abertura observada, adequação de modalidade e folga.
+  - **planejamento:** municípios/regiões ranqueados por necessidade estimada (baixo acesso + alta
+    internação), em linguagem natural, mais os **territórios prioritários** da tela inicial;
+  - **referência:** dado um município, CAPS AD até 150 km ranqueados por proximidade (0,3), mesma
+    região de saúde (0,5) e abertura a moradores de fora (0,2) — pesos calibrados contra fluxos
+    reais. **A folga e a adequação ficaram com peso zero.**
 - **Mudança em relação ao desenho anterior:** os fluxos reais (SIA/PS) mostraram que o
   encaminhamento intermunicipal é raro. Ranquear "o mais próximo não lotado" sem considerar
   pactuação recomendaria serviços inacessíveis.
@@ -264,7 +284,7 @@ sistema.
 
 - **Escopo/prazo:** linhas de corte na ARQUITETURA §11. Nunca cortar a porta de referência
   nem a avaliação.
-- **Corpus pequeno:** cerca de 1.500 documentos (municípios, regiões, serviços). A defesa é
+- **Corpus pequeno:** 822 documentos (645 municípios, 62 regiões, 115 CAPS AD). A defesa é
   a função de ranqueamento + avaliação. Não inflar com UBS.
 - **Granularidade:** 562 de 645 municípios sem CAPS AD. O ICA espacial (E2SFCA) e a Região
   de Saúde tratam isso.
@@ -303,11 +323,10 @@ IBGE Malhas · IBGE PNS 2019 · JESUS; ASSIS (2010) · MACQUEEN (1967) · MILIAU
 
 **Stack:** Python 3.12 em `.venv` (criado com `uv`).
 - pandas + `pyreaddbc`/`dbfread` para `.dbc`;
-- geopandas;
-- scikit-learn;
-- `rank_bm25` + `sentence-transformers` para busca;
-- plotly/folium;
-- streamlit.
+- geopandas, scikit-learn, scipy, scikit-posthocs, matplotlib, pyarrow;
+- **site e motor de busca em JavaScript puro** (sem build): Leaflet para o mapa; `web/js/busca.js`
+  (BM25 próprio, sem dependências); testes e avaliação com **Node 24** (`node:test`) e o Edge
+  (e2e por DevTools Protocol). **Não usa** Streamlit, `rank_bm25` nem `sentence-transformers`.
 
 Rodar: `.venv\Scripts\python.exe -I <script>`, com `PYTHONIOENCODING=utf-8`.
 

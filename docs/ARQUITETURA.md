@@ -5,6 +5,27 @@
 > de aceite, está em [PLANO_EXECUCAO.md](PLANO_EXECUCAO.md). O que ainda depende de
 > decisão humana está na seção 10 — **não decida essas questões sozinho**.
 
+## ⚠️ STATUS DE IMPLEMENTAÇÃO (atualizado em 29/10/2026) — leia antes das seções 3, 6, 8 e 9
+
+Este documento foi escrito **antes** da construção e registra o desenho e a justificativa. Os
+**achados (seção 1)** e os **princípios (seção 2)** continuam valendo. As seções de desenho abaixo
+**divergem do que foi implementado**; onde houver conflito, vale esta tabela:
+
+| Tema | Desenho original (seções 3, 6, 8, 9) | **Implementado** |
+|---|---|---|
+| Interface publicada | Streamlit, `app/streamlit_app.py` | **Site estático** (HTML/CSS/JS) em `web/`, na Vercel (que não hospeda Streamlit). Dados pré-computados em `web/data/*.json` |
+| Recuperação | BM25 + **busca densa** (sentence-transformers) fundidos por RRF | **Só BM25 próprio + regras de interpretação**, sem vetores e sem RRF. Busca semântica é trabalho futuro. Código: `web/js/busca.js` |
+| Corpus | ~1.500 documentos | **822** (645 municípios, 62 regiões, 115 CAPS AD habilitados de dez/2024) |
+| Ranqueamento de referência | proximidade, região, **adequação, folga**, abertura | **proximidade 0,3 + mesma região 0,5 + abertura 0,2.** Folga e adequação ficaram com **peso 0** na calibração (A26) e aparecem só como informação |
+| E2SFCA como sinal de ranking | `R_j` (pressão) entra no ranking da referência | **Não entra** (A23, A26): serve como índice descritivo/conceitual |
+| Avaliação da busca (planejamento) | 40–60 consultas escritas por especialista | **58 consultas escritas pelo assistente**, antes de rodar o motor; o grupo deve substituir/ampliar. Resultados: `docs/resultados_busca.md` |
+| Estrutura do repositório | `src/tg/busca/`, `app/`, `notebooks/` | Motor e site em `web/js/`; avaliação em `scripts/busca/` (Node) e `src/tg/avaliacao/` (Python) |
+| "Porta de planejamento" | consulta em texto livre | texto livre **e** a tela inicial de **territórios prioritários** (3 critérios) |
+
+Para o estado atual e os próximos passos, ver o [CLAUDE.md](../CLAUDE.md). Resultados:
+[resultados_avaliacao.md](resultados_avaliacao.md) (referência), [resultados_busca.md](resultados_busca.md)
+(motor), [resultados_clusters.md](resultados_clusters.md) (tipologia e Censo).
+
 ---
 
 ## 1. Achados empíricos que definem o desenho (out/2026)
@@ -32,7 +53,7 @@ antigas do CLAUDE.md onde houver conflito.
 | A16 | Série de internações F1x: 19.378 (2019), 15.389 (2020), 15.034 (2021), 17.262 (2022), 22.334 (2023), 24.786 (2024): queda pandêmica de ~21% e retomada acima do nível pré-pandemia | SIH RD | Anos 2020–21 são atípicos; testar robustez sem eles |
 | A17 | **Sem estimativa municipal de população para 2022 e 2023** (tabela 6579). 2022 = Censo (44,41 mi); 2023 interpolado. Descontinuidade 2021→2022: 46,65 mi → 44,41 mi (−4,8%) | SIDRA 6579, 4714 | Taxas de 2019–21 têm denominador superestimado; limitação a declarar |
 | A18 | População por idade só no Censo 2022. `pop_15mais` = total anual × proporção 15+ de 2022 (aproximação) | SIDRA 9514 | Declarar |
-| A19 | O conversor oficial do CNES lista **62 Regiões de Saúde** em SP; o documento do TG diz 63. O campo `REGSAUDE` do arquivo ST está **sujo** (290 valores livres), **não usar** | TAB_CNES `SP_regsaud.cnv`; ST | Usar o conversor. Confirmar o número 63 com o Prof. Ivan |
+| A19 | O conversor oficial do CNES lista **62 Regiões de Saúde** em SP. Busca na web (29/10/2026; **confirmar na fonte oficial**): o desenho de 2012 tinha 63 e uma deliberação da CIB/SP de 2024 o atualizou para 62. O documento entregue do TG não cita o número (o "63" veio das anotações iniciais). O campo `REGSAUDE` do arquivo ST está **sujo** (290 valores livres), **não usar** | TAB_CNES `SP_regsaud.cnv`; ST | Usar o conversor. Confirmar o número 63 com o Prof. Ivan |
 | A20 | Distância mediana ao CAPS AD habilitado mais próximo: **28 km** (p90 63 km, máx. 164 km); todos os 645 municípios têm um a ≤ 200 km | haversine | O deserto em SP é mais de **capacidade** que de distância; raio de 60 km cobre ~90% |
 | A22 | **A taxa de internação F1x reflete polos hospitalares, não só necessidade.** Espírito Santo do Pinhal: 797/100 mil (18× a média de 44,6), com 298 leitos SM SUS. Cidades pequenas sem hospital mandam ~100% das internações a um único polo (Taciba 91/91 e Tarabaí 92/92 → Presidente Prudente; Santo Antônio do Jardim 80/93 → Pinhal). 21 municípios têm 0 internações no bloco 2019–22 | `scripts/exploracao/investigar_*.py` | "Demanda" = **utilização hospitalar por residentes**, contaminada pela oferta/contratação regional de leitos. Declarar em 1.6; manter versão winsorizada (`taxa_suav_int_w99`) e óbitos como sinais de robustez. As **internações têm fluxos fortes** (concentradas), ao contrário do CAPS (A7) |
 | A23 | **Validação externa do E2SFCA é fraca e o plano original tinha um viés.** Persistência da demanda 2019–22 → 2023–24: ρ = 0,84 (internação), 0,44 (óbito). Correlação bruta A×internação futura −0,21 cai para **−0,10** (parcial, controlando persistência). O índice só de oferta S dá −0,11: **E2SFCA ≈ oferta pura** em poder preditivo. Camadas O2/O3 sobem um pouco (parcial −0,15/−0,14 vs S −0,13/−0,11). Sensibilidade ao raio: ρ(30 km, 90 km) = 0,63 | `scripts/exploracao/validar_acessibilidade.py` | O valor do E2SFCA é **conceitual** (acesso entre fronteiras; fornece `R_j`, a pressão do serviço, para a porta de referência), **não preditivo**. Reportar como resultado, sem vender como validado. Insumo para D3 |
